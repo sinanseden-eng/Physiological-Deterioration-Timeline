@@ -1,0 +1,713 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Heart, 
+  Dumbbell, 
+  Bone, 
+  Zap, 
+  Activity, 
+  Skull, 
+  Droplets, 
+  Play, 
+  Pause, 
+  RotateCcw,
+  Layers,
+  ActivitySquare,
+  Sparkles,
+  Loader2,
+  FileText,
+  Bug
+} from 'lucide-react';
+
+// --- Data Models & Interpolation ---
+
+const interpolate = (week, keyframes) => {
+  for (let i = 0; i < keyframes.length - 1; i++) {
+    if (week >= keyframes[i].w && week <= keyframes[i + 1].w) {
+      const rangeW = keyframes[i + 1].w - keyframes[i].w;
+      const rangeV = keyframes[i + 1].v - keyframes[i].v;
+      const t = (week - keyframes[i].w) / rangeW;
+      return keyframes[i].v + rangeV * t;
+    }
+  }
+  if (week < keyframes[0].w) return keyframes[0].v;
+  if (week > keyframes[keyframes.length - 1].w) return keyframes[keyframes.length - 1].v;
+  return 0;
+};
+
+const SYSTEMS = {
+  detraining: [
+    { id: 'cardio', name: 'Cardiovascular', icon: Heart, keyframes: [{w:1, v:100}, {w:4, v:80}, {w:12, v:70}, {w:52, v:55}] },
+    { id: 'muscle', name: 'Muscular Volume', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:4, v:90}, {w:12, v:75}, {w:52, v:60}] },
+    { id: 'bone', name: 'Bone Density', icon: Bone, keyframes: [{w:1, v:100}, {w:12, v:100}, {w:30, v:92}, {w:52, v:85}] },
+    { id: 'metab', name: 'Metabolic Rate', icon: Zap, keyframes: [{w:1, v:100}, {w:12, v:80}, {w:52, v:65}] },
+    { id: 'flex', name: 'Joint Flexibility', icon: Activity, keyframes: [{w:1, v:100}, {w:8, v:85}, {w:24, v:75}, {w:52, v:65}] },
+  ],
+  decomposition: [
+    { id: 'skin', name: 'Soft Tissue & Skin', icon: Droplets, keyframes: [{w:1, v:100}, {w:2, v:60}, {w:4, v:20}, {w:12, v:0}, {w:52, v:0}] },
+    { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:2, v:40}, {w:6, v:0}, {w:52, v:0}] },
+    { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:3, v:50}, {w:8, v:0}, {w:52, v:0}] },
+    { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:12, v:90}, {w:24, v:40}, {w:40, v:0}, {w:52, v:0}] },
+    { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:24, v:98}, {w:52, v:92}] },
+  ]
+};
+
+const getDetrainingText = (week) => {
+  if (week <= 2) return { phase: "Initial Detraining", text: "Blood volume decreases by up to 10%. Max heart rate increases during exertion as stroke volume drops. Muscle glycogen stores begin to rapidly deplete." };
+  if (week <= 8) return { phase: "Muscular Atrophy", text: "Noticeable loss in muscle cross-sectional area. Slow-twitch muscle fibers decrease in oxidative capacity. Capillary density in muscle tissue begins to drop." };
+  if (week <= 16) return { phase: "Metabolic Shift", text: "Mitochondrial density in cells drops significantly, reducing cellular energy production. Insulin sensitivity decreases, promoting increased fat storage." };
+  if (week <= 26) return { phase: "Cardiovascular Decline", text: "VO2 max has dropped by ~20%. The left ventricular wall of the heart may thin slightly due to reduced workload. Resting heart rate is noticeably elevated." };
+  if (week <= 40) return { phase: "Skeletal Changes", text: "Lack of mechanical loading initiates a slow, steady decline in bone mineral density. Joints feel stiffer due to reduced synovial fluid circulation and cartilage lubrication." };
+  return { phase: "Chronic Adaptation", text: "The body has fully adapted to a sedentary state. Significant loss of lean body mass, increased body fat percentage, and baseline fatigue are entrenched. Musculoskeletal resilience is severely compromised." };
+};
+
+const getDecompositionText = (week) => {
+  if (week <= 1) return { phase: "Fresh & Bloat Stages", text: "Autolysis (cellular self-digestion) begins immediately. By the end of the week, anaerobic bacteria in the gut produce gases (methane, hydrogen sulfide), causing severe abdominal bloating and skin marbling." };
+  if (week <= 4) return { phase: "Active Decay", text: "Increased internal pressure causes skin to rupture. Soft tissues liquefy rapidly, highly accelerated by immense insect/larval activity. Strong putrefaction odors are released into the environment." };
+  if (week <= 12) return { phase: "Advanced Decay", text: "The vast majority of soft tissue has been lost. Insect activity decreases significantly. The surrounding soil absorbs decomposition fluids. Butyric fermentation occurs, leaving a distinct waxy/cheesy residue (adipocere) in moist environments." };
+  if (week <= 24) return { phase: "Early Skeletonization", text: "Only residual dried skin, cartilage, and bone remain. Ligaments and tendons still hold the skeleton relatively intact. Environmental sun bleaching begins if exposed to the surface." };
+  if (week <= 40) return { phase: "Skeletonization", text: "Connective tissues degrade completely, causing bones to disarticulate (separate). The skeleton is fully exposed to environmental weathering, animal scavenging, and elemental breakdown." };
+  return { phase: "Dry Remains", text: "Complete skeletonization. Bones begin to dry, crack, and flake (bone weathering). Plant roots and soil microorganisms begin integrating the remaining calcium and minerals back into the local ecosystem." };
+};
+
+const getSystemStatus = (mode, systemId, week, value) => {
+  if (value === 100) return "Intact / Baseline";
+  if (value <= 0) return "Fully Consumed / Depleted";
+
+  if (mode === 'decomposition') {
+    if (week <= 2) {
+      if (systemId === 'organs') return "Targeted by: Enteric Bacteria";
+      if (systemId === 'skin') return "Targeted by: Pioneer Flies & Maggots";
+      if (systemId === 'muscle') return "Targeted by: Enteric Bacteria";
+      if (systemId === 'cartilage') return "Intact";
+      if (systemId === 'bone') return "Intact";
+    } else if (week <= 8) {
+      if (systemId === 'skin' || systemId === 'muscle') return "Targeted by: 2nd/3rd Instar Larvae, Beetles";
+      if (systemId === 'organs') return "Targeted by: Aerobic Fungi & Bacteria";
+      if (systemId === 'cartilage') return "Intact";
+      if (systemId === 'bone') return "Intact";
+    } else if (week <= 24) {
+      if (systemId === 'cartilage') return "Targeted by: Dermestidae (Hide Beetles)";
+      if (systemId === 'skin') return "Targeted by: Cleridae (Bone Beetles)";
+      if (systemId === 'bone') return "Intact";
+    } else {
+      if (systemId === 'bone') return "Targeted by: Rodents, Roots, Microbes";
+    }
+  } else {
+    // Detraining statuses
+    if (systemId === 'cardio') return "Stroke Volume & VO2 Max Dropping";
+    if (systemId === 'muscle') return "Fiber Atrophy & Glycogen Depletion";
+    if (systemId === 'bone') return "Mineral Density Declining";
+    if (systemId === 'metab') return "Mitochondrial Density Decreasing";
+    if (systemId === 'flex') return "Synovial Fluid Reduction";
+  }
+  return "Degrading";
+};
+
+const getActiveNecrobiome = (week) => {
+    if (week <= 2) return [
+        { name: "Anaerobic Enteric Bacteria", desc: "Consuming internal organs & muscle." },
+        { name: "Pioneer Flies & 1st Instar Larvae", desc: "Liquefying soft tissues & mucous membranes." }
+    ];
+    if (week <= 8) return [
+        { name: "Maggot Masses & Aerobic Bacteria", desc: "Consuming vast majority of soft tissues & fat." },
+        { name: "Carrion & Predatory Beetles", desc: "Feeding on decaying flesh and fly larvae." }
+    ];
+    if (week <= 24) return [
+        { name: "Skin/Hide Beetles (Dermestidae)", desc: "Breaking down dried skin, cartilage, and ligaments." },
+        { name: "Soil Fungi & Nematodes", desc: "Absorbing leaked purge fluids in the soil." }
+    ];
+    return [
+        { name: "Vertebrate Scavengers (Rodents)", desc: "Gnawing on exposed bones for minerals." },
+        { name: "Plant Roots & Soil Microbes", desc: "Dissolving bone mineral and collagen matrix." }
+    ];
+};
+
+// --- Sub-components for Visualizer ---
+
+const SkeletonLayer = ({ opacity }) => (
+  <g opacity={opacity} style={{ transition: 'opacity 0.8s ease' }} fill="#e2e8f0">
+    {/* Skull */}
+    <path d="M -13,-58 C -13,-72 13,-72 13,-58 C 13,-50 9,-46 7,-42 L 5,-36 L -5,-36 L -7,-42 C -9,-46 -13,-50 -13,-58 Z" />
+    {/* Eye Sockets & Nose */}
+    <circle cx="-5" cy="-52" r="3" fill="#0f172a" />
+    <circle cx="5" cy="-52" r="3" fill="#0f172a" />
+    <path d="M 0,-48 L -2,-44 L 2,-44 Z" fill="#0f172a" />
+    {/* Jaw */}
+    <path d="M -6,-35 C -6,-30 6,-30 6,-35 Z" fill="#cbd5e1" />
+    
+    {/* Spine (Cervical to Lumbar) */}
+    <path d="M -2,-32 L 2,-32 L 2,8 L -2,8 Z" fill="#cbd5e1" />
+    
+    {/* Ribcage */}
+    <g stroke="#e2e8f0" strokeWidth="2.5" strokeLinecap="round" fill="none">
+      <path d="M 0,-26 C -12,-28 -18,-20 -15,-12" />
+      <path d="M 0,-26 C 12,-28 18,-20 15,-12" />
+      <path d="M 0,-21 C -14,-23 -20,-14 -16,-6" />
+      <path d="M 0,-21 C 14,-23 20,-14 16,-6" />
+      <path d="M 0,-16 C -15,-18 -21,-8 -16,0" />
+      <path d="M 0,-16 C 15,-18 21,-8 16,0" />
+      <path d="M 0,-11 C -14,-13 -18,-2 -14,4" />
+      <path d="M 0,-11 C 14,-13 18,-2 14,4" />
+    </g>
+    {/* Sternum */}
+    <rect x="-1.5" y="-28" width="3" height="20" rx="1.5" fill="#e2e8f0" />
+
+    {/* Pelvis */}
+    <path d="M -2,8 C -18,2 -24,18 -12,22 C -6,24 -2,16 0,16 C 2,16 6,24 12,22 C 24,18 18,2 2,8 Z" />
+
+    {/* Arms (Clavicle, Humerus, Radius/Ulna, Hands) */}
+    <path d="M -4,-28 Q -12,-32 -20,-28" stroke="#e2e8f0" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <path d="M 4,-28 Q 12,-32 20,-28" stroke="#e2e8f0" strokeWidth="3" fill="none" strokeLinecap="round" />
+    <line x1="-20" y1="-28" x2="-28" y2="-6" stroke="#e2e8f0" strokeWidth="3.5" strokeLinecap="round" />
+    <line x1="-28" y1="-6" x2="-34" y2="14" stroke="#e2e8f0" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="-35" cy="18" r="2.5" />
+    <line x1="20" y1="-28" x2="28" y2="-6" stroke="#e2e8f0" strokeWidth="3.5" strokeLinecap="round" />
+    <line x1="28" y1="-6" x2="34" y2="14" stroke="#e2e8f0" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="35" cy="18" r="2.5" />
+
+    {/* Legs (Femur, Tibia/Fibula, Feet) */}
+    <line x1="-9" y1="18" x2="-14" y2="48" stroke="#e2e8f0" strokeWidth="4.5" strokeLinecap="round" />
+    <circle cx="-14" cy="49" r="2.5" />
+    <line x1="-14" y1="50" x2="-16" y2="78" stroke="#e2e8f0" strokeWidth="3.5" strokeLinecap="round" />
+    <path d="M -16,78 L -20,84 L -12,84 Z" />
+    
+    <line x1="9" y1="18" x2="14" y2="48" stroke="#e2e8f0" strokeWidth="4.5" strokeLinecap="round" />
+    <circle cx="14" cy="49" r="2.5" />
+    <line x1="14" y1="50" x2="16" y2="78" stroke="#e2e8f0" strokeWidth="3.5" strokeLinecap="round" />
+    <path d="M 16,78 L 12,84 L 20,84 Z" />
+  </g>
+);
+
+const FleshLayer = ({ fill, opacity, scaleX = 1, scaleY = 1, armScale = 1, legScale = 1, headY = -55, isDecay = false }) => (
+  <g opacity={opacity} style={{ transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+    <g transform={`scale(${scaleX}, ${scaleY})`}>
+      {/* Torso & Neck */}
+      <path 
+        d="M -6,-40 L 6,-40 C 12,-38 22,-30 24,-20 C 26,-5 22,5 20,15 C 18,25 10,28 0,28 C -10,28 -18,25 -20,15 C -22,5 -26,-5 -24,-20 C -22,-30 -12,-38 -6,-40 Z" 
+        fill={isDecay ? "url(#decayGrad)" : fill} 
+        filter={isDecay ? "url(#fleshTexture)" : ""}
+      />
+    </g>
+    
+    {/* Head */}
+    <g transform={`translate(0, ${headY})`}>
+      <ellipse cx="0" cy="0" rx={14} ry={17} fill={isDecay ? "url(#decayGrad)" : fill} filter={isDecay ? "url(#fleshTexture)" : ""} />
+    </g>
+
+    {/* Arms */}
+    <g stroke={isDecay ? "#381a05" : fill} strokeLinecap="round" filter={isDecay ? "url(#fleshTexture)" : ""}>
+      <line x1="-20" y1="-26" x2="-35" y2="16" strokeWidth={12 * armScale} />
+      <line x1="20" y1="-26" x2="35" y2="16" strokeWidth={12 * armScale} />
+    </g>
+
+    {/* Legs */}
+    <g stroke={isDecay ? "#381a05" : fill} strokeLinecap="round" filter={isDecay ? "url(#fleshTexture)" : ""}>
+      <line x1="-10" y1="20" x2="-16" y2="80" strokeWidth={15 * legScale} />
+      <line x1="10" y1="20" x2="16" y2="80" strokeWidth={15 * legScale} />
+    </g>
+  </g>
+);
+
+const BodyVisualizer = ({ mode, week }) => {
+  // --- Decomposition State Math ---
+  const normalOp = interpolate(week, [{w:1,v:1}, {w:2,v:0.2}, {w:3,v:0}]);
+  const bloatOp = interpolate(week, [{w:1,v:0}, {w:2,v:1}, {w:4,v:0.8}, {w:8,v:0}]);
+  const decayOp = interpolate(week, [{w:1,v:0}, {w:3,v:0}, {w:5,v:1}, {w:12,v:0.5}, {w:24,v:0}]);
+  
+  // Adjusted bloat scaling for anatomical paths
+  const bloatScaleX = interpolate(week, [{w:1,v:1}, {w:2,v:1.5}, {w:4,v:1.3}, {w:8,v:0.8}, {w:24,v:0.4}]);
+  const bloatScaleY = interpolate(week, [{w:1,v:1}, {w:2,v:1.2}, {w:4,v:1.1}, {w:8,v:0.9}, {w:24,v:0.4}]);
+  const decayArmScale = interpolate(week, [{w:1,v:1}, {w:4,v:1.2}, {w:8,v:0.6}, {w:24,v:0.2}]);
+  const decayLegScale = interpolate(week, [{w:1,v:1}, {w:4,v:1.2}, {w:8,v:0.6}, {w:24,v:0.2}]);
+  const boneWeathering = interpolate(week, [{w:1,v:1}, {w:40,v:1}, {w:52,v:0.4}]);
+
+  // --- Detraining State Math ---
+  const fatScale = interpolate(week, [{w:1,v:1}, {w:52,v:1.35}]);
+  const muscleArmScale = interpolate(week, [{w:1,v:1.2}, {w:52,v:0.8}]);
+  const muscleLegScale = interpolate(week, [{w:1,v:1.2}, {w:52,v:0.85}]);
+  const slouchHeadY = interpolate(week, [{w:1,v:-55}, {w:52,v:-52}]);
+
+  return (
+    <div className="w-full h-64 sm:h-80 bg-slate-950 rounded-xl overflow-hidden relative shadow-[inset_0_2px_20px_rgba(0,0,0,0.5)] border border-slate-700/50">
+      <svg viewBox="0 0 300 240" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          {/* Fleshy & Decay Gradients */}
+          <linearGradient id="healthyFlesh" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#fca5a5" />
+            <stop offset="50%" stopColor="#f87171" />
+            <stop offset="100%" stopColor="#ef4444" />
+          </linearGradient>
+          <linearGradient id="bloatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#65a30d" />
+            <stop offset="50%" stopColor="#4d7c0f" />
+            <stop offset="100%" stopColor="#3f6212" />
+          </linearGradient>
+          <linearGradient id="decayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#451a03" />
+            <stop offset="50%" stopColor="#290f02" />
+            <stop offset="100%" stopColor="#1a0901" />
+          </linearGradient>
+
+          {/* Environmental Gradients */}
+          <linearGradient id="dirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3f2e22" />
+            <stop offset="50%" stopColor="#2b1d12" />
+            <stop offset="100%" stopColor="#140c06" />
+          </linearGradient>
+          <linearGradient id="shaftGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#1c120a" />
+            <stop offset="100%" stopColor="#0a0602" />
+          </linearGradient>
+          <linearGradient id="gymWall" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1e293b" />
+            <stop offset="100%" stopColor="#0f172a" />
+          </linearGradient>
+
+          {/* Textures / Filters */}
+          <filter id="fleshTexture">
+            <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise" />
+            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" in="noise" result="coloredNoise" />
+            <feComposite operator="in" in="coloredNoise" in2="SourceGraphic" result="texture" />
+            <feBlend mode="multiply" in="texture" in2="SourceGraphic" />
+          </filter>
+        </defs>
+
+        {/* --- Backgrounds --- */}
+        {mode === 'decomposition' ? (
+          <g>
+            {/* Night Sky */}
+            <rect width="300" height="60" fill="#020617" />
+            <circle cx="260" cy="25" r="10" fill="#cbd5e1" opacity="0.8" filter="blur(2px)" />
+            <circle cx="260" cy="25" r="8" fill="#f8fafc" />
+            
+            {/* Surface Grass/Flora */}
+            <rect y="56" width="300" height="6" fill="#064e3b" />
+            <path d="M 20,56 L 25,48 L 30,56 M 50,56 L 52,50 L 55,56 M 150,56 L 155,45 L 160,56 M 280,56 L 283,49 L 286,56" stroke="#047857" strokeWidth="2" fill="none" strokeLinecap="round" />
+            
+            {/* Deep Soil */}
+            <rect y="62" width="300" height="178" fill="url(#dirtGrad)" />
+            
+            {/* Roots creeping down (opacity increases over time) */}
+            <g opacity={interpolate(week, [{w:1,v:0}, {w:24,v:0.4}, {w:52,v:0.8}])} stroke="#451a03" strokeWidth="1.5" fill="none" strokeLinecap="round">
+              <path d="M 50,62 Q 40,100 60,140 T 50,200" />
+              <path d="M 250,62 Q 260,120 230,160 T 240,220" />
+              <path d="M 150,62 Q 130,90 150,110" />
+            </g>
+
+            {/* Burial Shaft */}
+            <rect x="30" y="80" width="240" height="130" fill="url(#shaftGrad)" rx="12" />
+            <path d="M 30,92 Q 150,75 270,92" fill="none" stroke="#2b1d12" strokeWidth="4" />
+            
+            {/* Decomposition fluid stain (grows over time) */}
+            <ellipse 
+              cx="150" 
+              cy="145" 
+              rx={interpolate(week, [{w:1,v:0}, {w:4,v:110}, {w:24,v:120}, {w:52,v:90}])} 
+              ry={interpolate(week, [{w:1,v:0}, {w:4,v:60}, {w:24,v:65}, {w:52,v:45}])} 
+              fill="#290f02" 
+              opacity={interpolate(week, [{w:1,v:0}, {w:4,v:0.6}, {w:24,v:0.8}, {w:52,v:0.3}])}
+              filter="blur(8px)"
+            />
+          </g>
+        ) : (
+          <g>
+            {/* Gym/Room Wall */}
+            <rect width="300" height="180" fill="url(#gymWall)" />
+            
+            {/* Window with Light Rays */}
+            <rect x="180" y="30" width="90" height="100" fill="#020617" stroke="#334155" strokeWidth="4" />
+            <line x1="180" y1="80" x2="270" y2="80" stroke="#334155" strokeWidth="4" />
+            <line x1="225" y1="30" x2="225" y2="130" stroke="#334155" strokeWidth="4" />
+            
+            {/* Light Ray Polygon */}
+            <polygon points="180,30 270,30 220,180 130,180" fill="#38bdf8" opacity="0.05" />
+
+            {/* Dumbbell Rack Outline */}
+            <g stroke="#334155" strokeWidth="3" fill="none">
+              <rect x="20" y="80" width="60" height="100" />
+              <line x1="20" y1="100" x2="80" y2="100" />
+              <line x1="20" y1="130" x2="80" y2="130" />
+              <line x1="20" y1="160" x2="80" y2="160" />
+              {/* Dumbbells */}
+              <circle cx="35" cy="95" r="4" fill="#475569" stroke="none" />
+              <circle cx="65" cy="95" r="4" fill="#475569" stroke="none" />
+            </g>
+
+            {/* Floor */}
+            <rect y="180" width="300" height="60" fill="#0f172a" />
+            <path d="M 0,180 L 300,180" stroke="#000" strokeWidth="4" opacity="0.3" />
+            
+            {/* Yoga / Exercise Mat */}
+            <path d="M 90,210 L 210,210 L 230,230 L 70,230 Z" fill="#1e293b" stroke="#334155" strokeWidth="2" strokeLinejoin="round" />
+          </g>
+        )}
+
+        {/* --- The Body Wrapper --- */}
+        <g transform={mode === 'decomposition' ? 'translate(150, 145) rotate(90)' : 'translate(150, 110)'}>
+          
+          {/* Skeleton always rendered, hidden behind flesh until decay */}
+          <SkeletonLayer opacity={mode === 'decomposition' ? boneWeathering : 0} />
+          
+          {mode === 'decomposition' ? (
+            <>
+              {/* Layer 3: Advanced Decay (Dark Brown/Textured) */}
+              <FleshLayer 
+                fill="#451a03" 
+                opacity={decayOp} 
+                scaleX={bloatScaleX * 0.9} 
+                scaleY={bloatScaleY * 0.9} 
+                armScale={decayArmScale * 0.8} 
+                legScale={decayLegScale * 0.8} 
+                isDecay={true} 
+              />
+              
+              {/* Layer 2: Active Decay / Bloat (Greenish/Purple Gradient) */}
+              <FleshLayer 
+                fill="url(#bloatGrad)" 
+                opacity={bloatOp} 
+                scaleX={bloatScaleX} 
+                scaleY={bloatScaleY} 
+                armScale={decayArmScale} 
+                legScale={decayLegScale} 
+              />
+              
+              {/* Layer 1: Normal Flesh (Fades out quickly post-mortem) */}
+              <FleshLayer 
+                fill="url(#healthyFlesh)" 
+                opacity={normalOp} 
+              />
+            </>
+          ) : (
+            <>
+              {/* Detraining Layer: Normal color, changes shape based on week */}
+              <FleshLayer 
+                fill="url(#healthyFlesh)" 
+                opacity={1} 
+                scaleX={fatScale} 
+                armScale={muscleArmScale} 
+                legScale={muscleLegScale} 
+                headY={slouchHeadY}
+              />
+            </>
+          )}
+        </g>
+      </svg>
+    </div>
+  );
+};
+
+
+export default function App() {
+  const [week, setWeek] = useState(1);
+  const [mode, setMode] = useState('decomposition'); // 'detraining' or 'decomposition'
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+
+  const [report, setReport] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const apiKey = ""; // Set your API key here
+
+  const generateReport = async () => {
+    setIsGenerating(true);
+    setReport(null);
+    
+    const currentSystems = SYSTEMS[mode];
+    const systemData = currentSystems.map(s => `${s.name}: ${Math.round(interpolate(week, s.keyframes))}%`).join(', ');
+    
+    const prompt = mode === 'decomposition'
+      ? `Act as an expert forensic anthropologist. Write a concise, realistic post-mortem examination summary for a body that has been decomposing for ${week} weeks. Assume standard environmental conditions. Current tissue/system integrities are: ${systemData}. Keep it under 150 words, use professional forensic terminology, and avoid markdown hashes for headers, just use bold text.`
+      : `Act as a clinical physiologist. Write a concise, realistic medical assessment for a patient who has been completely sedentary and detraining for ${week} weeks. Current physiological integrities are: ${systemData}. Keep it under 150 words, use professional medical terminology, and avoid markdown hashes for headers, just use bold text.`;
+
+    try {
+      let attempt = 0;
+      let response;
+      
+      // Exponential backoff for API calls
+      while (attempt < 5) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        
+        if (response.ok) break;
+        
+        attempt++;
+        const delay = Math.pow(2, attempt) * 1000;
+        await new Promise(r => setTimeout(r, delay));
+      }
+      
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      setReport(text || "No report generated.");
+    } catch (error) {
+      console.error("Gemini API Error:", error);
+      setReport("Error generating report. Please check your API key/connection.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Auto-play effect
+  useEffect(() => {
+    let interval;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setWeek(prev => {
+          if (prev >= 52) {
+            setIsPlaying(false);
+            return 52;
+          }
+          return prev + 1;
+        });
+      }, 400 / speed); // 400ms per week modified by speed
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, speed]);
+
+  const currentSystems = SYSTEMS[mode];
+  const info = mode === 'detraining' ? getDetrainingText(week) : getDecompositionText(week);
+
+  const getColorClass = (val) => {
+    if (val > 80) return 'bg-cyan-400';
+    if (val > 50) return 'bg-yellow-400';
+    if (val > 20) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const getTextColorClass = (val) => {
+    if (val > 80) return 'text-cyan-400';
+    if (val > 50) return 'text-yellow-400';
+    if (val > 20) return 'text-orange-500';
+    return 'text-red-500';
+  };
+
+  // SVG Circle calculations (Small version for overlay)
+  const radius = 24;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (week / 52) * circumference;
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col items-center p-4 sm:p-8">
+      
+      {/* Header */}
+      <header className="max-w-5xl w-full flex flex-col items-center mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-600 text-center mb-6 tracking-tight">
+          Physiological Deterioration Timeline
+        </h1>
+        
+        {/* Mode Toggle */}
+        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 shadow-xl">
+          <button
+            onClick={() => { setMode('decomposition'); setWeek(1); setIsPlaying(false); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+              mode === 'decomposition' ? 'bg-slate-800 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Skull className="w-4 h-4" />
+            Post-Mortem Decay
+          </button>
+          <button
+            onClick={() => { setMode('detraining'); setWeek(1); setIsPlaying(false); }}
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+              mode === 'detraining' ? 'bg-slate-800 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            Sedentary Detraining
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        
+        {/* Left Column: Visualization & Controls */}
+        <div className="md:col-span-6 flex flex-col bg-slate-900/50 p-6 rounded-2xl border border-slate-800/80 shadow-2xl relative">
+          
+          {/* Main Visualizer Component */}
+          <div className="relative mb-6">
+            <BodyVisualizer mode={mode} week={week} />
+            
+            {/* Small Overlay Progress Circle */}
+            <div className="absolute top-4 left-4 flex justify-center items-center w-16 h-16 bg-slate-950/80 rounded-full border border-slate-800 backdrop-blur-sm shadow-lg">
+              <svg className="transform -rotate-90 w-full h-full p-1" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r={radius} className="stroke-slate-800" strokeWidth="4" fill="none" />
+                <circle
+                  cx="30" cy="30" r={radius}
+                  className="stroke-cyan-500 transition-all duration-300 ease-out"
+                  strokeWidth="4" fill="none" strokeLinecap="round"
+                  style={{ strokeDasharray: circumference, strokeDashoffset }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pt-0.5">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase leading-none mb-0.5">Wk</span>
+                <span className="text-xl font-black text-slate-100 leading-none">{week}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mb-6 h-10 flex flex-col justify-center">
+            <h2 className="text-xl font-bold text-cyan-400 tracking-wide">{info.phase}</h2>
+          </div>
+
+          {/* Slider & Controls */}
+          <div className="w-full space-y-6 z-10 px-2">
+            <input
+              type="range"
+              min="1"
+              max="52"
+              value={week}
+              onChange={(e) => {
+                setWeek(parseInt(e.target.value));
+                setIsPlaying(false);
+              }}
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+            />
+            
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="flex items-center justify-center w-12 h-12 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 hover:scale-105 transition-all rounded-full border border-cyan-500/30"
+              >
+                {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5 ml-1" fill="currentColor" />}
+              </button>
+              <button
+                onClick={() => { setWeek(1); setIsPlaying(false); }}
+                className="flex items-center justify-center w-12 h-12 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all rounded-full border border-slate-700"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Speed Controls */}
+            <div className="flex justify-center mt-3">
+              <div className="flex bg-slate-900/80 p-1 rounded-lg border border-slate-700/80 shadow-inner">
+                {[0.1, 0.25, 0.5, 1, 2, 4].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSpeed(s)}
+                    className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold rounded-md transition-all ${
+                      speed === s 
+                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-sm' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent'
+                    }`}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        {/* Right Column: Systems & Data */}
+        <div className="md:col-span-6 flex flex-col gap-4">
+          
+          {/* Detailed Info Panel */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl mb-2">
+            <div className="flex items-center gap-2 mb-2">
+              <ActivitySquare className="w-5 h-5 text-cyan-400" />
+              <h3 className="font-semibold text-slate-200">Physiological Overview</h3>
+            </div>
+            <p className="text-slate-400 leading-relaxed text-sm min-h-[5.5rem]">
+              {info.text}
+            </p>
+            
+            {/* Gemini AI Integration */}
+            <div className="mt-4 pt-4 border-t border-slate-800/80">
+              <button
+                onClick={generateReport}
+                disabled={isGenerating}
+                className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 hover:from-cyan-500/20 hover:to-blue-500/20 border border-cyan-500/30 rounded-lg text-cyan-400 font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {isGenerating 
+                  ? "Analyzing Data..." 
+                  : mode === 'decomposition' ? "Generate Forensic Report ✨" : "Generate Clinical Assessment ✨"}
+              </button>
+
+              {report && (
+                <div className="mt-3 p-4 bg-slate-950/50 rounded-lg border border-slate-800 text-sm text-slate-300 leading-relaxed overflow-y-auto max-h-48">
+                  <div className="flex items-center gap-2 mb-2 text-cyan-500 font-semibold sticky top-0 bg-slate-950/90 py-1">
+                    <FileText className="w-4 h-4" />
+                    <span>AI Generated Report (Week {week})</span>
+                  </div>
+                  <div className="whitespace-pre-wrap">{report}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Active Necrobiome (Only in Decomposition mode) */}
+          {mode === 'decomposition' && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl mb-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Bug className="w-5 h-5 text-lime-400" />
+                <h3 className="font-semibold text-slate-200">Active Necrobiome Agents</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {getActiveNecrobiome(week).map((agent, i) => (
+                  <div key={i} className="bg-slate-950/50 border border-slate-800/80 rounded-lg p-3">
+                    <span className="block text-sm font-medium text-lime-400 mb-1">{agent.name}</span>
+                    <span className="block text-xs text-slate-400">{agent.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* System Integrity Bars */}
+          <div className="grid grid-cols-1 gap-3">
+            {currentSystems.map((system) => {
+              const value = interpolate(week, system.keyframes);
+              return (
+                <div key={system.id} className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm hover:border-slate-700 transition-colors">
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg bg-slate-950 border border-slate-800 shadow-inner`}>
+                        <system.icon className={`w-4 h-4 ${getTextColorClass(value)} transition-colors duration-500`} />
+                      </div>
+                      <span className="font-medium text-slate-200 text-sm">{system.name}</span>
+                    </div>
+                    <span className={`text-lg font-bold tracking-tight ${getTextColorClass(value)} transition-colors duration-500`}>
+                      {Math.round(value)}%
+                    </span>
+                  </div>
+                  
+                  {/* Progress Bar Container */}
+                  <div className="w-full bg-slate-950/50 h-2.5 rounded-full overflow-hidden border border-slate-800/50 mb-2">
+                    <div
+                      className={`h-full ${getColorClass(value)} transition-all duration-700 ease-out`}
+                      style={{ width: `${value}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[11px] text-slate-500 font-medium tracking-wide">
+                      {getSystemStatus(mode, system.id, week, value)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </main>
+      
+      {/* Footer / Context */}
+      <footer className="mt-12 text-center text-xs text-slate-600 max-w-2xl pb-8">
+        <p>Values represent generalized approximations of biological integrity and function over a 52-week timeline. Actual deterioration varies wildly based on environmental conditions, temperature, starting health, and genetics.</p>
+      </footer>
+
+    </div>
+  );
+}
