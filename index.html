@@ -30,7 +30,7 @@
       Play, Pause, RotateCcw, Layers, ActivitySquare, 
       Sparkles, Loader2, FileText, Bug,
       ThermometerSun, Snowflake, Trophy, User, ArrowLeft, ChevronRight, Waves,
-      Volume2, MessageCircle, Send
+      Volume2, MessageCircle, Send, Mic, StopCircle, Film
     } from 'https://esm.sh/lucide-react@0.292.0';
 
     // --- Audio Helper Functions for Gemini TTS ---
@@ -114,10 +114,10 @@
           return { phase: "Dry Remains", text: "Bones begin to dry, crack, and flake. Plant roots start integrating minerals back into the ecosystem." };
         },
         necro: (w) => {
-          if (w <= 2) return [{ name: "Anaerobic Enteric Bacteria", desc: "Consuming internal organs & muscle." }, { name: "Pioneer Flies", desc: "Liquefying soft tissues." }];
-          if (w <= 8) return [{ name: "Maggot Masses & Aerobic Bacteria", desc: "Consuming vast majority of soft tissues." }, { name: "Carrion Beetles", desc: "Feeding on decaying flesh." }];
-          if (w <= 24) return [{ name: "Skin/Hide Beetles", desc: "Breaking down dried cartilage." }, { name: "Soil Fungi & Nematodes", desc: "Absorbing leaked fluids." }];
-          return [{ name: "Rodents", desc: "Gnawing on exposed bones." }, { name: "Plant Roots", desc: "Dissolving bone mineral." }];
+          if (w <= 2) return [{ name: "Anaerobic Enteric Bacteria", desc: "Consuming internal organs & muscle.", emoji: "🦠" }, { name: "Pioneer Flies", desc: "Liquefying soft tissues.", emoji: "🪰" }];
+          if (w <= 8) return [{ name: "Maggot Masses & Aerobic Bacteria", desc: "Consuming vast majority of soft tissues.", emoji: "🐛" }, { name: "Carrion Beetles", desc: "Feeding on decaying flesh.", emoji: "🪲" }];
+          if (w <= 24) return [{ name: "Skin/Hide Beetles", desc: "Breaking down dried cartilage.", emoji: "🐞" }, { name: "Soil Fungi & Nematodes", desc: "Absorbing leaked fluids.", emoji: "🍄" }];
+          return [{ name: "Rodents", desc: "Gnawing on exposed bones.", emoji: "🐀" }, { name: "Plant Roots", desc: "Dissolving bone mineral.", emoji: "🌱" }];
         },
         visuals: {
           normalOp: [{w:1,v:1}, {w:2,v:0.2}, {w:3,v:0}], bloatOp: [{w:1,v:0}, {w:2,v:1}, {w:4,v:0.8}, {w:8,v:0}],
@@ -147,9 +147,9 @@
           return { phase: "Sun-Bleached Remains", text: "Skeleton is fully exposed. UV radiation and heat aggressively dry and bleach the bones." };
         },
         necro: (w) => {
-          if (w <= 1.5) return [{ name: "Hyper-active Bacteria", desc: "Explosive growth due to heat." }, { name: "Massive Fly Swarms", desc: "Immediate, heavy egg laying." }];
-          if (w <= 4) return [{ name: "Giant Maggot Masses", desc: "Extreme tissue consumption." }, { name: "Predatory Beetles", desc: "Hunting in massive numbers." }];
-          return [{ name: "Dermestidae & Cleridae", desc: "Rapidly clearing remaining dry tissue." }, { name: "UV Radiation", desc: "Sunlight causing bone cracking." }];
+          if (w <= 1.5) return [{ name: "Hyper-active Bacteria", desc: "Explosive growth due to heat.", emoji: "🦠" }, { name: "Massive Fly Swarms", desc: "Immediate, heavy egg laying.", emoji: "🪰" }];
+          if (w <= 4) return [{ name: "Giant Maggot Masses", desc: "Extreme tissue consumption.", emoji: "🐛" }, { name: "Predatory Beetles", desc: "Hunting in massive numbers.", emoji: "🪲" }];
+          return [{ name: "Dermestidae & Cleridae", desc: "Rapidly clearing remaining dry tissue.", emoji: "🐞" }, { name: "UV Radiation", desc: "Sunlight causing bone cracking.", emoji: "☀️" }];
         },
         visuals: {
           normalOp: [{w:1,v:1}, {w:1.5,v:0}], bloatOp: [{w:1,v:0}, {w:1.5,v:1}, {w:2.5,v:0}],
@@ -174,8 +174,8 @@
         ],
         text: (w) => ({ phase: "Cryo-Preservation", text: "Sub-freezing temperatures halt blowfly activity and severely retard bacterial growth. The body enters a state of near-perfect preservation, experiencing only minor cellular degradation from ice crystallization." }),
         necro: (w) => [
-          { name: "Ice Crystallization", desc: "Minor mechanical damage to cell walls." },
-          { name: "Anaerobic Bacteria", desc: "Extremely slow activity deep in the core." }
+          { name: "Ice Crystallization", desc: "Minor mechanical damage to cell walls.", emoji: "❄️" },
+          { name: "Anaerobic Bacteria", desc: "Extremely slow activity deep in the core.", emoji: "🦠" }
         ],
         visuals: {
           normalOp: [{w:1,v:1}], bloatOp: [{w:1,v:0}], decayOp: [{w:1,v:0}],
@@ -201,10 +201,10 @@
           return { phase: "Bone Degradation", text: "Specialized bone-eating worms (Osedax) colonize the skeleton, extracting deep lipids and actively dissolving the bone mineral matrix." };
         },
         necro: (w) => {
-          if (w <= 2) return [{ name: "Large Scavengers", desc: "Sharks & hagfish tearing soft tissue." }, { name: "Marine Bacteria", desc: "Metabolism significantly slowed by cold." }];
-          if (w <= 8) return [{ name: "Benthic Crustaceans", desc: "Crabs & isopods swarming to strip flesh." }, { name: "Gastropods", desc: "Marine snails grazing on remaining tissue." }];
-          if (w <= 24) return [{ name: "Microbial Mats", desc: "Sulfur-reducing bacteria coating bones." }, { name: "Echinoderms", desc: "Sea stars slowly consuming tough cartilage." }];
-          return [{ name: "Osedax (Zombie Worms)", desc: "Secreting acid to dissolve bone matrix." }, { name: "Sulfate-Reducing Bacteria", desc: "Breaking down deep bone lipids." }];
+          if (w <= 2) return [{ name: "Large Scavengers", desc: "Sharks & hagfish tearing soft tissue.", emoji: "🦈" }, { name: "Marine Bacteria", desc: "Metabolism significantly slowed by cold.", emoji: "🦠" }];
+          if (w <= 8) return [{ name: "Benthic Crustaceans", desc: "Crabs & isopods swarming to strip flesh.", emoji: "🦀" }, { name: "Gastropods", desc: "Marine snails grazing on remaining tissue.", emoji: "🐌" }];
+          if (w <= 24) return [{ name: "Microbial Mats", desc: "Sulfur-reducing bacteria coating bones.", emoji: "🧫" }, { name: "Echinoderms", desc: "Sea stars slowly consuming tough cartilage.", emoji: "⭐️" }];
+          return [{ name: "Osedax (Zombie Worms)", desc: "Secreting acid to dissolve bone matrix.", emoji: "🪱" }, { name: "Sulfate-Reducing Bacteria", desc: "Breaking down deep bone lipids.", emoji: "🦠" }];
         },
         visuals: {
           normalOp: [{w:1,v:1}, {w:2,v:0.4}, {w:4,v:0}], bloatOp: [{w:1,v:0}, {w:1.5,v:0.2}, {w:2.5,v:0}],
@@ -484,14 +484,16 @@
       const [isPlaying, setIsPlaying] = useState(false);
       const [speed, setSpeed] = useState(1);
       
+      // Auto Narrator / Guided Tour States
+      const [isAutoNarrating, setIsAutoNarrating] = useState(false);
+      const autoNarrateRef = useRef(false);
+      const lastNarratedPhase = useRef(null);
+
       // LLM States
       const [report, setReport] = useState(null);
       const [isGenerating, setIsGenerating] = useState(false);
-      
-      // TTS States
       const [isSpeaking, setIsSpeaking] = useState(false);
-      const audioRef = useRef(null);
-
+      
       // Q&A States
       const [customQuestion, setCustomQuestion] = useState("");
       const [customAnswer, setCustomAnswer] = useState(null);
@@ -508,23 +510,25 @@
         setIsPlaying(false);
         setReport(null);
         setCustomAnswer(null);
-        if(audioRef.current) {
-          audioRef.current.pause();
-          setIsSpeaking(false);
-        }
+        
+        // Cancel Auto-Narrate if manually disrupted
+        setIsAutoNarrating(false);
+        autoNarrateRef.current = false;
+
+        setIsSpeaking(false);
       };
 
-      const generateReport = async () => {
+      const generateReport = async (targetWeek = week, isTour = false) => {
         setIsGenerating(true);
         setReport(null);
-        if(audioRef.current) { audioRef.current.pause(); setIsSpeaking(false); }
+        setIsSpeaking(false);
         
         const currentSystems = activeScenario.systems;
-        const systemData = currentSystems.map(s => `${s.name}: ${Math.round(interpolate(week, s.keyframes))}%`).join(', ');
+        const systemData = currentSystems.map(s => `${s.name}: ${Math.round(interpolate(targetWeek, s.keyframes))}%`).join(', ');
         
         const prompt = mode === 'decomposition'
-          ? `Act as an expert forensic anthropologist. Write a concise, realistic post-mortem examination summary for a body that has been decomposing for ${week} weeks in a ${activeScenario.title} scenario (${activeScenario.desc}). Current tissue/system integrities are: ${systemData}. Keep it under 80 words, use professional forensic terminology, and avoid markdown hashes for headers, just use plain text.`
-          : `Act as a clinical physiologist. Write a concise, realistic medical assessment for a patient who has been completely sedentary and detraining for ${week} weeks in a ${activeScenario.title} scenario (${activeScenario.desc}). Current physiological integrities are: ${systemData}. Keep it under 80 words, use professional medical terminology, and avoid markdown hashes for headers, just use plain text.`;
+          ? `Act as an expert forensic anthropologist narrating a documentary. Describe the current state of the body at exactly week ${targetWeek} in a ${activeScenario.title} scenario. Current stats: ${systemData}. Keep it engaging, scientific, and strictly under 60 words. No markdown hashes.`
+          : `Act as a clinical physiologist narrating a documentary. Describe the patient's physiological state at exactly week ${targetWeek} in a ${activeScenario.title} scenario. Current stats: ${systemData}. Keep it engaging, scientific, and strictly under 60 words. No markdown hashes.`;
 
         try {
           let attempt = 0;
@@ -541,34 +545,58 @@
             await new Promise(r => setTimeout(r, delay));
           }
           
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
           const data = await response.json();
           if (data.error) throw new Error(data.error.message);
           
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          setReport(text || "No report generated.");
+          const finalReport = text || "No report generated.";
+          setReport(finalReport);
+          setIsGenerating(false);
+
+          if (isTour && autoNarrateRef.current) {
+             await narrateReport(finalReport, targetWeek, true);
+          }
+
         } catch (error) {
           console.error("Gemini API Error:", error);
-          setReport("Error generating report. Please check your API key.");
-        } finally {
+          setReport("Error generating report. Please check your API key/connection.");
           setIsGenerating(false);
+          if (isTour && autoNarrateRef.current) setIsPlaying(true);
         }
       };
 
-      const narrateReport = async () => {
-        if(!report) return;
+      const narrateReport = async (textToSpeak = report, targetWeek = week, autoResume = false) => {
+        if(!textToSpeak) return;
         setIsSpeaking(true);
         try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: `Simulation Week ${week}. ` + report }] }],
-              generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } } }
-              }
-            })
-          });
+          let attempt = 0;
+          let response;
+          while (attempt < 5) {
+              response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: `Entering Week ${targetWeek}. ` + textToSpeak }] }],
+                  generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } } }
+                  }
+                })
+              });
+              if (response.ok) break;
+              attempt++;
+              const delay = Math.pow(2, attempt) * 1000;
+              await new Promise(r => setTimeout(r, delay));
+          }
+          
+          if (!response.ok) {
+             throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
           const data = await response.json();
           const base64Pcm = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
           
@@ -578,12 +606,31 @@
           const audioUrl = URL.createObjectURL(wavBlob);
           
           const audio = new Audio(audioUrl);
-          audioRef.current = audio;
-          audio.onended = () => setIsSpeaking(false);
+          audio.onended = () => {
+            setIsSpeaking(false);
+            if (autoResume && autoNarrateRef.current) {
+              setIsPlaying(true);
+            }
+          };
           audio.play();
         } catch (err) {
           console.error("TTS Error:", err);
           setIsSpeaking(false);
+          if (autoResume && autoNarrateRef.current) setIsPlaying(true);
+        }
+      };
+
+      const toggleGuidedTour = () => {
+        const nextState = !isAutoNarrating;
+        setIsAutoNarrating(nextState);
+        autoNarrateRef.current = nextState;
+        
+        if (nextState) {
+          lastNarratedPhase.current = null; // force immediate trigger
+          setIsPlaying(true);
+        } else {
+          setIsSpeaking(false);
+          setIsPlaying(false);
         }
       };
 
@@ -598,33 +645,65 @@
         const prompt = `You are an expert ${mode === 'decomposition' ? 'forensic anthropologist' : 'clinical physiologist'}. The scenario is: ${activeScenario.title} (${activeScenario.desc}). We are exactly at Week ${week}. The current physical stats are: ${systemData}. The user asks: "${customQuestion}". Provide a brief, scientific, educational answer in 2-3 sentences.`;
 
         try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-          });
+          let attempt = 0;
+          let response;
+          while (attempt < 5) {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            if (response.ok) break;
+            attempt++;
+            const delay = Math.pow(2, attempt) * 1000;
+            await new Promise(r => setTimeout(r, delay));
+          }
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
           const data = await response.json();
           setCustomAnswer(data.candidates?.[0]?.content?.parts?.[0]?.text || "No response.");
         } catch (e) {
-          setCustomAnswer("Error fetching answer. Check your API key.");
+          setCustomAnswer("Error fetching answer. Check your API key/connection.");
         } finally {
           setIsAsking(false);
           setCustomQuestion("");
         }
       };
 
+      // Handle standard playback interval
       useEffect(() => {
         let interval;
         if (isPlaying && hasStarted) {
           interval = setInterval(() => {
             setWeek(prev => {
-              if (prev >= 52) { setIsPlaying(false); return 52; }
+              if (prev >= 52) { 
+                setIsPlaying(false);
+                setIsAutoNarrating(false);
+                autoNarrateRef.current = false;
+                return 52; 
+              }
               return prev + 1;
             });
           }, 400 / speed); 
         }
         return () => clearInterval(interval);
       }, [isPlaying, speed, hasStarted]);
+
+      // Guided Tour Effect: Detect Phase Changes and trigger generation
+      useEffect(() => {
+        if (!isAutoNarrating || !hasStarted) return;
+        
+        const currentPhase = activeScenario.text(week).phase;
+        
+        if (currentPhase !== lastNarratedPhase.current) {
+            lastNarratedPhase.current = currentPhase;
+            // Pause playback, generate new report, read it, and resume
+            setIsPlaying(false); 
+            generateReport(week, true);
+        }
+      }, [week, isAutoNarrating, hasStarted, activeScenario]);
 
       if (!hasStarted) {
         return (
@@ -645,7 +724,11 @@
               {Object.values(SCENARIOS).map(scen => (
                 <button 
                   key={scen.id}
-                  onClick={() => { setScenarioId(scen.id); setHasStarted(true); setWeek(1); setIsPlaying(false); setReport(null); setCustomAnswer(null); }}
+                  onClick={() => { 
+                    setScenarioId(scen.id); setHasStarted(true); setWeek(1); 
+                    setIsPlaying(false); setIsAutoNarrating(false); autoNarrateRef.current = false;
+                    setReport(null); setCustomAnswer(null); lastNarratedPhase.current = null;
+                  }}
                   className="flex flex-col text-left bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/50 hover:bg-slate-800/80 hover:-translate-y-1 transition-all duration-300 group shadow-xl"
                 >
                   <div className={`p-3 rounded-xl bg-slate-950 border border-slate-800 mb-4 group-hover:scale-110 transition-transform duration-300 w-fit shadow-inner`}>
@@ -673,7 +756,7 @@
         <div className="min-h-screen font-sans flex flex-col items-center p-4 sm:p-8">
           <header className="max-w-5xl w-full flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
             <button 
-              onClick={() => { setHasStarted(false); setIsPlaying(false); }}
+              onClick={() => { setHasStarted(false); setIsPlaying(false); setIsAutoNarrating(false); autoNarrateRef.current = false; }}
               className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mr-auto bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 shadow-sm"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -715,7 +798,7 @@
                 />
                 
                 <div className="flex justify-center gap-4">
-                  <button onClick={() => setIsPlaying(!isPlaying)} className="flex items-center justify-center w-12 h-12 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 hover:scale-105 transition-all rounded-full border border-cyan-500/30">
+                  <button onClick={() => { setIsPlaying(!isPlaying); setIsAutoNarrating(false); autoNarrateRef.current = false; }} className="flex items-center justify-center w-12 h-12 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 hover:scale-105 transition-all rounded-full border border-cyan-500/30">
                     {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5 ml-1" fill="currentColor" />}
                   </button>
                   <button onClick={() => handleWeekChange(1)} className="flex items-center justify-center w-12 h-12 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all rounded-full border border-slate-700">
@@ -746,10 +829,37 @@
                 <p className="text-slate-400 leading-relaxed text-sm min-h-[4rem] mb-4">{info.text}</p>
                 
                 <div className="pt-4 border-t border-slate-800/80 space-y-4">
-                  {/* Generate Report Button */}
-                  <button onClick={generateReport} disabled={isGenerating} className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-cyan-400 font-medium text-sm transition-all disabled:opacity-50 shadow-inner">
+                  
+                  {/* Guided Tour Toggle */}
+                  <button 
+                    onClick={toggleGuidedTour} 
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all shadow-inner border ${
+                      isAutoNarrating 
+                      ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border-rose-500/50' 
+                      : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    }`}
+                  >
+                    {isAutoNarrating ? <StopCircle className="w-5 h-5 animate-pulse" /> : <Film className="w-5 h-5" />}
+                    {isAutoNarrating ? "Stop Guided Tour ⏹️" : "Start Guided Tour 🎬🎙️"}
+                  </button>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div className="w-full border-t border-slate-800"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-slate-900 px-2 text-[10px] uppercase text-slate-500 font-bold tracking-widest">OR MANUAL CONTROL</span>
+                    </div>
+                  </div>
+
+                  {/* Manual Generate Report Button */}
+                  <button 
+                    onClick={() => generateReport(week, false)} 
+                    disabled={isGenerating || isAutoNarrating} 
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-cyan-400 font-medium text-sm transition-all disabled:opacity-50 shadow-inner"
+                  >
                     {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    {isGenerating ? "Analyzing Data..." : mode === 'decomposition' ? "Generate Forensic Report ✨" : "Generate Clinical Assessment ✨"}
+                    {isGenerating ? "Analyzing Data..." : mode === 'decomposition' ? "Generate Specific Report ✨" : "Generate Specific Assessment ✨"}
                   </button>
 
                   {/* Generated Report & TTS */}
@@ -757,15 +867,15 @@
                     <div className="p-4 bg-slate-950/50 rounded-lg border border-slate-800 text-sm text-slate-300 leading-relaxed relative">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 text-cyan-500 font-semibold">
-                          <FileText className="w-4 h-4" /><span>AI Report (Wk {week})</span>
+                          <FileText className="w-4 h-4" /><span>AI Report</span>
                         </div>
                         <button 
-                          onClick={narrateReport} 
+                          onClick={() => narrateReport(report, week, false)} 
                           disabled={isSpeaking}
-                          className="flex items-center gap-1.5 text-xs bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 py-1 px-2.5 rounded border border-cyan-500/30 transition-all disabled:opacity-50"
+                          className={`flex items-center gap-1.5 text-xs py-1 px-2.5 rounded border transition-all disabled:opacity-50 ${isSpeaking ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border-cyan-500/30'}`}
                         >
                           {isSpeaking ? <Loader2 className="w-3 h-3 animate-spin" /> : <Volume2 className="w-3 h-3" />}
-                          {isSpeaking ? "Speaking..." : "Listen 🔊✨"}
+                          {isSpeaking ? "Speaking..." : "Listen 🔊"}
                         </button>
                       </div>
                       <div className="whitespace-pre-wrap">{report}</div>
@@ -806,15 +916,20 @@
 
               {mode === 'decomposition' && activeScenario.necro && (
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-4">
                     <Bug className="w-5 h-5 text-lime-400" />
                     <h3 className="font-semibold text-slate-200">Active Necrobiome Agents</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {activeScenario.necro(week).map((agent, i) => (
-                      <div key={i} className="bg-slate-950/50 border border-slate-800/80 rounded-lg p-3">
-                        <span className="block text-sm font-medium text-lime-400 mb-1">{agent.name}</span>
-                        <span className="block text-xs text-slate-400">{agent.desc}</span>
+                      <div key={i} className="flex items-center gap-3 bg-slate-950/50 border border-slate-800/80 rounded-lg p-3 hover:border-lime-500/30 transition-colors">
+                        <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-slate-900/80 rounded-md border border-slate-700/80 text-xl shadow-inner select-none">
+                          {agent.emoji}
+                        </div>
+                        <div>
+                          <span className="block text-sm font-bold text-lime-400 mb-0.5">{agent.name}</span>
+                          <span className="block text-xs text-slate-400 leading-tight">{agent.desc}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
