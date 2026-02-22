@@ -28,11 +28,13 @@
     import { 
       Heart, Dumbbell, Bone, Zap, Activity, Skull, Droplets, 
       Play, Pause, RotateCcw, Layers, ActivitySquare, 
-      Sparkles, Loader2, FileText, Bug 
+      Sparkles, Loader2, FileText, Bug,
+      ThermometerSun, Snowflake, Trophy, User, ArrowLeft, ChevronRight, Waves
     } from 'https://esm.sh/lucide-react@0.292.0';
 
     // --- Data Models & Interpolation ---
     const interpolate = (week, keyframes) => {
+      if (!keyframes || keyframes.length === 0) return 0;
       for (let i = 0; i < keyframes.length - 1; i++) {
         if (week >= keyframes[i].w && week <= keyframes[i + 1].w) {
           const rangeW = keyframes[i + 1].w - keyframes[i].w;
@@ -46,91 +48,176 @@
       return 0;
     };
 
-    const SYSTEMS = {
-      detraining: [
-        { id: 'cardio', name: 'Cardiovascular', icon: Heart, keyframes: [{w:1, v:100}, {w:4, v:80}, {w:12, v:70}, {w:52, v:55}] },
-        { id: 'muscle', name: 'Muscular Volume', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:4, v:90}, {w:12, v:75}, {w:52, v:60}] },
-        { id: 'bone', name: 'Bone Density', icon: Bone, keyframes: [{w:1, v:100}, {w:12, v:100}, {w:30, v:92}, {w:52, v:85}] },
-        { id: 'metab', name: 'Metabolic Rate', icon: Zap, keyframes: [{w:1, v:100}, {w:12, v:80}, {w:52, v:65}] },
-        { id: 'flex', name: 'Joint Flexibility', icon: Activity, keyframes: [{w:1, v:100}, {w:8, v:85}, {w:24, v:75}, {w:52, v:65}] },
-      ],
-      decomposition: [
-        { id: 'skin', name: 'Soft Tissue & Skin', icon: Droplets, keyframes: [{w:1, v:100}, {w:2, v:60}, {w:4, v:20}, {w:12, v:0}, {w:52, v:0}] },
-        { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:2, v:40}, {w:6, v:0}, {w:52, v:0}] },
-        { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:3, v:50}, {w:8, v:0}, {w:52, v:0}] },
-        { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:12, v:90}, {w:24, v:40}, {w:40, v:0}, {w:52, v:0}] },
-        { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:24, v:98}, {w:52, v:92}] },
-      ]
-    };
-
-    const getDetrainingText = (week) => {
-      if (week <= 2) return { phase: "Initial Detraining", text: "Blood volume decreases by up to 10%. Max heart rate increases during exertion as stroke volume drops. Muscle glycogen stores begin to rapidly deplete." };
-      if (week <= 8) return { phase: "Muscular Atrophy", text: "Noticeable loss in muscle cross-sectional area. Slow-twitch muscle fibers decrease in oxidative capacity. Capillary density in muscle tissue begins to drop." };
-      if (week <= 16) return { phase: "Metabolic Shift", text: "Mitochondrial density in cells drops significantly, reducing cellular energy production. Insulin sensitivity decreases, promoting increased fat storage." };
-      if (week <= 26) return { phase: "Cardiovascular Decline", text: "VO2 max has dropped by ~20%. The left ventricular wall of the heart may thin slightly due to reduced workload. Resting heart rate is noticeably elevated." };
-      if (week <= 40) return { phase: "Skeletal Changes", text: "Lack of mechanical loading initiates a slow, steady decline in bone mineral density. Joints feel stiffer due to reduced synovial fluid circulation and cartilage lubrication." };
-      return { phase: "Chronic Adaptation", text: "The body has fully adapted to a sedentary state. Significant loss of lean body mass, increased body fat percentage, and baseline fatigue are entrenched. Musculoskeletal resilience is severely compromised." };
-    };
-
-    const getDecompositionText = (week) => {
-      if (week <= 1) return { phase: "Fresh & Bloat Stages", text: "Autolysis (cellular self-digestion) begins immediately. By the end of the week, anaerobic bacteria in the gut produce gases (methane, hydrogen sulfide), causing severe abdominal bloating and skin marbling." };
-      if (week <= 4) return { phase: "Active Decay", text: "Increased internal pressure causes skin to rupture. Soft tissues liquefy rapidly, highly accelerated by immense insect/larval activity. Strong putrefaction odors are released into the environment." };
-      if (week <= 12) return { phase: "Advanced Decay", text: "The vast majority of soft tissue has been lost. Insect activity decreases significantly. The surrounding soil absorbs decomposition fluids. Butyric fermentation occurs, leaving a distinct waxy/cheesy residue (adipocere) in moist environments." };
-      if (week <= 24) return { phase: "Early Skeletonization", text: "Only residual dried skin, cartilage, and bone remain. Ligaments and tendons still hold the skeleton relatively intact. Environmental sun bleaching begins if exposed to the surface." };
-      if (week <= 40) return { phase: "Skeletonization", text: "Connective tissues degrade completely, causing bones to disarticulate (separate). The skeleton is fully exposed to environmental weathering, animal scavenging, and elemental breakdown." };
-      return { phase: "Dry Remains", text: "Complete skeletonization. Bones begin to dry, crack, and flake (bone weathering). Plant roots and soil microorganisms begin integrating the remaining calcium and minerals back into the local ecosystem." };
-    };
-
-    const getSystemStatus = (mode, systemId, week, value) => {
-      if (value === 100) return "Intact / Baseline";
-      if (value <= 0) return "Fully Consumed / Depleted";
-
-      if (mode === 'decomposition') {
-        if (week <= 2) {
-          if (systemId === 'organs') return "Targeted by: Enteric Bacteria";
-          if (systemId === 'skin') return "Targeted by: Pioneer Flies & Maggots";
-          if (systemId === 'muscle') return "Targeted by: Enteric Bacteria";
-          if (systemId === 'cartilage') return "Intact";
-          if (systemId === 'bone') return "Intact";
-        } else if (week <= 8) {
-          if (systemId === 'skin' || systemId === 'muscle') return "Targeted by: 2nd/3rd Instar Larvae, Beetles";
-          if (systemId === 'organs') return "Targeted by: Aerobic Fungi & Bacteria";
-          if (systemId === 'cartilage') return "Intact";
-          if (systemId === 'bone') return "Intact";
-        } else if (week <= 24) {
-          if (systemId === 'cartilage') return "Targeted by: Dermestidae (Hide Beetles)";
-          if (systemId === 'skin') return "Targeted by: Cleridae (Bone Beetles)";
-          if (systemId === 'bone') return "Intact";
-        } else {
-          if (systemId === 'bone') return "Targeted by: Rodents, Roots, Microbes";
+    // Define all scenario configurations
+    const SCENARIOS = {
+      decomp_standard: {
+        id: 'decomp_standard', mode: 'decomposition',
+        title: 'Standard Post-Mortem',
+        desc: 'Temperate climate (~65°F/18°C), average conditions. Normal baseline rate of decomposition and necrobiome succession.',
+        icon: Skull, colorClass: 'text-cyan-400',
+        systems: [
+          { id: 'skin', name: 'Soft Tissue', icon: Droplets, keyframes: [{w:1, v:100}, {w:2, v:60}, {w:4, v:20}, {w:12, v:0}, {w:52, v:0}] },
+          { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:2, v:40}, {w:6, v:0}, {w:52, v:0}] },
+          { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:3, v:50}, {w:8, v:0}, {w:52, v:0}] },
+          { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:12, v:90}, {w:24, v:40}, {w:40, v:0}, {w:52, v:0}] },
+          { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:24, v:98}, {w:52, v:92}] },
+        ],
+        text: (w) => {
+          if (w <= 1) return { phase: "Fresh & Bloat Stages", text: "Autolysis begins. Anaerobic bacteria in the gut produce gases causing severe bloating." };
+          if (w <= 4) return { phase: "Active Decay", text: "Internal pressure ruptures skin. Soft tissues liquefy rapidly, highly accelerated by immense insect/larval activity." };
+          if (w <= 12) return { phase: "Advanced Decay", text: "Vast majority of soft tissue is lost. Insect activity decreases. Surrounding soil absorbs decomposition fluids." };
+          if (w <= 24) return { phase: "Early Skeletonization", text: "Only residual dried skin, cartilage, and bone remain. Ligaments hold the skeleton relatively intact." };
+          if (w <= 40) return { phase: "Skeletonization", text: "Connective tissues degrade completely, causing bones to separate." };
+          return { phase: "Dry Remains", text: "Bones begin to dry, crack, and flake. Plant roots start integrating minerals back into the ecosystem." };
+        },
+        necro: (w) => {
+          if (w <= 2) return [{ name: "Anaerobic Enteric Bacteria", desc: "Consuming internal organs & muscle." }, { name: "Pioneer Flies", desc: "Liquefying soft tissues." }];
+          if (w <= 8) return [{ name: "Maggot Masses & Aerobic Bacteria", desc: "Consuming vast majority of soft tissues." }, { name: "Carrion Beetles", desc: "Feeding on decaying flesh." }];
+          if (w <= 24) return [{ name: "Skin/Hide Beetles", desc: "Breaking down dried cartilage." }, { name: "Soil Fungi & Nematodes", desc: "Absorbing leaked fluids." }];
+          return [{ name: "Rodents", desc: "Gnawing on exposed bones." }, { name: "Plant Roots", desc: "Dissolving bone mineral." }];
+        },
+        visuals: {
+          normalOp: [{w:1,v:1}, {w:2,v:0.2}, {w:3,v:0}], bloatOp: [{w:1,v:0}, {w:2,v:1}, {w:4,v:0.8}, {w:8,v:0}],
+          decayOp: [{w:1,v:0}, {w:3,v:0}, {w:5,v:1}, {w:12,v:0.5}, {w:24,v:0}],
+          bloatScaleX: [{w:1,v:1}, {w:2,v:1.5}, {w:4,v:1.3}, {w:8,v:0.8}, {w:24,v:0.4}],
+          bloatScaleY: [{w:1,v:1}, {w:2,v:1.2}, {w:4,v:1.1}, {w:8,v:0.9}, {w:24,v:0.4}],
+          armScale: [{w:1,v:1}, {w:4,v:1.2}, {w:8,v:0.6}, {w:24,v:0.2}],
+          legScale: [{w:1,v:1}, {w:4,v:1.2}, {w:8,v:0.6}, {w:24,v:0.2}], boneWeathering: [{w:1,v:1}, {w:40,v:1}, {w:52,v:0.4}]
         }
-      } else {
-        if (systemId === 'cardio') return "Stroke Volume & VO2 Max Dropping";
-        if (systemId === 'muscle') return "Fiber Atrophy & Glycogen Depletion";
-        if (systemId === 'bone') return "Mineral Density Declining";
-        if (systemId === 'metab') return "Mitochondrial Density Decreasing";
-        if (systemId === 'flex') return "Synovial Fluid Reduction";
+      },
+      decomp_hot: {
+        id: 'decomp_hot', mode: 'decomposition',
+        title: 'Tropical / High Heat',
+        desc: 'Hot & humid (85°F+). Extreme acceleration of autolysis and massive insect activity.',
+        icon: ThermometerSun, colorClass: 'text-orange-500',
+        systems: [
+          { id: 'skin', name: 'Soft Tissue', icon: Droplets, keyframes: [{w:1, v:100}, {w:2, v:10}, {w:4, v:0}, {w:52, v:0}] },
+          { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:1.5, v:0}, {w:52, v:0}] },
+          { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:2, v:30}, {w:4, v:0}, {w:52, v:0}] },
+          { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:3, v:50}, {w:8, v:0}, {w:52, v:0}] },
+          { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:8, v:90}, {w:52, v:75}] },
+        ],
+        text: (w) => {
+          if (w <= 1.5) return { phase: "Accelerated Bloat", text: "Extreme heat causes almost immediate onset of putrefaction and massive gas buildup." };
+          if (w <= 3) return { phase: "Hyper-Active Decay", text: "Maggot masses thrive in the heat, consuming tissues at 3x the normal rate. Total liquefaction occurs rapidly." };
+          if (w <= 8) return { phase: "Early Skeletonization", text: "Skin and muscle are entirely gone. Beetles arrive early to consume drying cartilage." };
+          return { phase: "Sun-Bleached Remains", text: "Skeleton is fully exposed. UV radiation and heat aggressively dry and bleach the bones." };
+        },
+        necro: (w) => {
+          if (w <= 1.5) return [{ name: "Hyper-active Bacteria", desc: "Explosive growth due to heat." }, { name: "Massive Fly Swarms", desc: "Immediate, heavy egg laying." }];
+          if (w <= 4) return [{ name: "Giant Maggot Masses", desc: "Extreme tissue consumption." }, { name: "Predatory Beetles", desc: "Hunting in massive numbers." }];
+          return [{ name: "Dermestidae & Cleridae", desc: "Rapidly clearing remaining dry tissue." }, { name: "UV Radiation", desc: "Sunlight causing bone cracking." }];
+        },
+        visuals: {
+          normalOp: [{w:1,v:1}, {w:1.5,v:0}], bloatOp: [{w:1,v:0}, {w:1.5,v:1}, {w:2.5,v:0}],
+          decayOp: [{w:1,v:0}, {w:2,v:1}, {w:4,v:0.5}, {w:8,v:0}],
+          bloatScaleX: [{w:1,v:1}, {w:1.5,v:1.6}, {w:3,v:0.8}, {w:8,v:0.4}],
+          bloatScaleY: [{w:1,v:1}, {w:1.5,v:1.3}, {w:3,v:0.9}, {w:8,v:0.4}],
+          armScale: [{w:1,v:1}, {w:2,v:1.2}, {w:4,v:0.6}, {w:8,v:0.2}],
+          legScale: [{w:1,v:1}, {w:2,v:1.2}, {w:4,v:0.6}, {w:8,v:0.2}], boneWeathering: [{w:1,v:1}, {w:12,v:1}, {w:52,v:0.2}]
+        }
+      },
+      decomp_cold: {
+        id: 'decomp_cold', mode: 'decomposition',
+        title: 'Sub-Freezing Winter',
+        desc: 'Continuous freezing temperatures. The necrobiome is severely suppressed.',
+        icon: Snowflake, colorClass: 'text-blue-400',
+        systems: [
+          { id: 'skin', name: 'Soft Tissue', icon: Droplets, keyframes: [{w:1, v:100}, {w:52, v:85}] },
+          { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:52, v:80}] },
+          { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:52, v:90}] },
+          { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:52, v:95}] },
+          { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:52, v:100}] },
+        ],
+        text: (w) => ({ phase: "Cryo-Preservation", text: "Sub-freezing temperatures halt blowfly activity and severely retard bacterial growth. The body enters a state of near-perfect preservation, experiencing only minor cellular degradation from ice crystallization." }),
+        necro: (w) => [
+          { name: "Ice Crystallization", desc: "Minor mechanical damage to cell walls." },
+          { name: "Anaerobic Bacteria", desc: "Extremely slow activity deep in the core." }
+        ],
+        visuals: {
+          normalOp: [{w:1,v:1}], bloatOp: [{w:1,v:0}], decayOp: [{w:1,v:0}],
+          bloatScaleX: [{w:1,v:1}], bloatScaleY: [{w:1,v:1}], armScale: [{w:1,v:1}], legScale: [{w:1,v:1}], boneWeathering: [{w:1,v:1}]
+        }
+      },
+      decomp_ocean: {
+        id: 'decomp_ocean', mode: 'decomposition',
+        title: 'Deep Ocean Floor',
+        desc: 'Cold (~39°F/4°C), high pressure. Intense aquatic scavenging drives decay rather than bacterial putrefaction.',
+        icon: Waves, colorClass: 'text-teal-400',
+        systems: [
+          { id: 'skin', name: 'Soft Tissue', icon: Droplets, keyframes: [{w:1, v:100}, {w:2, v:40}, {w:4, v:0}, {w:52, v:0}] },
+          { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:3, v:0}, {w:52, v:0}] },
+          { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:4, v:20}, {w:8, v:0}, {w:52, v:0}] },
+          { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:12, v:50}, {w:24, v:0}, {w:52, v:0}] },
+          { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:24, v:90}, {w:52, v:60}] },
+        ],
+        text: (w) => {
+          if (w <= 2) return { phase: "Marine Scavenging", text: "Cold water inhibits bloat. Large marine scavengers (sharks, hagfish) rapidly tear apart and consume accessible soft tissues." };
+          if (w <= 8) return { phase: "Crustacean Grazing", text: "Swarms of isopods and crabs meticulously strip remaining flesh and musculature from the skeleton." };
+          if (w <= 24) return { phase: "Skeletal Exposure", text: "All soft tissue is gone. Tougher cartilage is slowly broken down by marine microbes and small echinoderms." };
+          return { phase: "Bone Degradation", text: "Specialized bone-eating worms (Osedax) colonize the skeleton, extracting deep lipids and actively dissolving the bone mineral matrix." };
+        },
+        necro: (w) => {
+          if (w <= 2) return [{ name: "Large Scavengers", desc: "Sharks & hagfish tearing soft tissue." }, { name: "Marine Bacteria", desc: "Metabolism significantly slowed by cold." }];
+          if (w <= 8) return [{ name: "Benthic Crustaceans", desc: "Crabs & isopods swarming to strip flesh." }, { name: "Gastropods", desc: "Marine snails grazing on remaining tissue." }];
+          if (w <= 24) return [{ name: "Microbial Mats", desc: "Sulfur-reducing bacteria coating bones." }, { name: "Echinoderms", desc: "Sea stars slowly consuming tough cartilage." }];
+          return [{ name: "Osedax (Zombie Worms)", desc: "Secreting acid to dissolve bone matrix." }, { name: "Sulfate-Reducing Bacteria", desc: "Breaking down deep bone lipids." }];
+        },
+        visuals: {
+          normalOp: [{w:1,v:1}, {w:2,v:0.4}, {w:4,v:0}], bloatOp: [{w:1,v:0}, {w:1.5,v:0.2}, {w:2.5,v:0}],
+          decayOp: [{w:1,v:0}, {w:2,v:1}, {w:4,v:0.5}, {w:8,v:0}],
+          bloatScaleX: [{w:1,v:1}, {w:2,v:1.1}, {w:8,v:0.6}],
+          bloatScaleY: [{w:1,v:1}, {w:2,v:1.05}, {w:8,v:0.6}],
+          armScale: [{w:1,v:1}, {w:2,v:0.8}, {w:4,v:0.5}, {w:8,v:0.2}],
+          legScale: [{w:1,v:1}, {w:2,v:0.8}, {w:4,v:0.5}, {w:8,v:0.2}], boneWeathering: [{w:1,v:1}, {w:24,v:1}, {w:52,v:0.6}]
+        }
+      },
+      detrain_standard: {
+        id: 'detrain_standard', mode: 'detraining',
+        title: 'Standard Detraining',
+        desc: 'Average adult transitioning to a completely sedentary lifestyle.',
+        icon: User, colorClass: 'text-yellow-400',
+        systems: [
+          { id: 'cardio', name: 'Cardiovascular', icon: Heart, keyframes: [{w:1, v:100}, {w:4, v:80}, {w:12, v:70}, {w:52, v:55}] },
+          { id: 'muscle', name: 'Muscular Volume', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:4, v:90}, {w:12, v:75}, {w:52, v:60}] },
+          { id: 'bone', name: 'Bone Density', icon: Bone, keyframes: [{w:1, v:100}, {w:12, v:100}, {w:30, v:92}, {w:52, v:85}] },
+          { id: 'metab', name: 'Metabolic Rate', icon: Zap, keyframes: [{w:1, v:100}, {w:12, v:80}, {w:52, v:65}] },
+          { id: 'flex', name: 'Joint Flexibility', icon: Activity, keyframes: [{w:1, v:100}, {w:8, v:85}, {w:24, v:75}, {w:52, v:65}] },
+        ],
+        text: (w) => {
+          if (w <= 2) return { phase: "Initial Detraining", text: "Blood volume decreases by up to 10%. Max heart rate increases during exertion." };
+          if (w <= 8) return { phase: "Muscular Atrophy", text: "Noticeable loss in muscle cross-sectional area. Slow-twitch muscle fibers decrease in oxidative capacity." };
+          if (w <= 16) return { phase: "Metabolic Shift", text: "Mitochondrial density drops significantly. Insulin sensitivity decreases, promoting fat storage." };
+          if (w <= 40) return { phase: "Skeletal Changes", text: "Lack of mechanical loading initiates a slow decline in bone mineral density. Joints feel stiffer." };
+          return { phase: "Chronic Adaptation", text: "Body fully adapted to a sedentary state. Significant loss of lean body mass and increased body fat." };
+        },
+        visuals: {
+          fatScale: [{w:1,v:1}, {w:52,v:1.35}], muscleArmScale: [{w:1,v:1.2}, {w:52,v:0.8}],
+          muscleLegScale: [{w:1,v:1.2}, {w:52,v:0.85}], headY: [{w:1,v:-55}, {w:52,v:-52}]
+        }
+      },
+      detrain_elite: {
+        id: 'detrain_elite', mode: 'detraining',
+        title: 'Elite Athlete Detraining',
+        desc: 'A high-performance athlete experiences a sudden, extreme drop in activity.',
+        icon: Trophy, colorClass: 'text-emerald-400',
+        systems: [
+          { id: 'cardio', name: 'Cardiovascular', icon: Heart, keyframes: [{w:1, v:100}, {w:4, v:55}, {w:12, v:45}, {w:52, v:40}] },
+          { id: 'muscle', name: 'Muscular Volume', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:4, v:60}, {w:12, v:50}, {w:52, v:45}] },
+          { id: 'bone', name: 'Bone Density', icon: Bone, keyframes: [{w:1, v:100}, {w:12, v:90}, {w:30, v:80}, {w:52, v:75}] },
+          { id: 'metab', name: 'Metabolic Rate', icon: Zap, keyframes: [{w:1, v:100}, {w:8, v:60}, {w:52, v:50}] },
+          { id: 'flex', name: 'Joint Flexibility', icon: Activity, keyframes: [{w:1, v:100}, {w:8, v:70}, {w:24, v:55}, {w:52, v:50}] },
+        ],
+        text: (w) => {
+          if (w <= 4) return { phase: "Rapid Plunge", text: "Extreme initial loss of VO2 max and fast-twitch muscle. The body aggressively sheds 'expensive' excess muscle mass it no longer needs to maintain." };
+          if (w <= 16) return { phase: "Metabolic Crash", text: "Massive drop in mitochondrial density. Insulin sensitivity plummets from athlete baseline down to average sedentary levels rapidly." };
+          return { phase: "New Baseline Adaptation", text: "The sharp decline levels out as the body reaches a new, average sedentary baseline. Connective tissues and bone density continue a slow decline." };
+        },
+        visuals: {
+          fatScale: [{w:1,v:1}, {w:52,v:1.2}], muscleArmScale: [{w:1,v:1.5}, {w:52,v:0.8}],
+          muscleLegScale: [{w:1,v:1.6}, {w:52,v:0.85}], headY: [{w:1,v:-55}, {w:52,v:-52}]
+        }
       }
-      return "Degrading";
-    };
-
-    const getActiveNecrobiome = (week) => {
-        if (week <= 2) return [
-            { name: "Anaerobic Enteric Bacteria", desc: "Consuming internal organs & muscle." },
-            { name: "Pioneer Flies & 1st Instar Larvae", desc: "Liquefying soft tissues & mucous membranes." }
-        ];
-        if (week <= 8) return [
-            { name: "Maggot Masses & Aerobic Bacteria", desc: "Consuming vast majority of soft tissues & fat." },
-            { name: "Carrion & Predatory Beetles", desc: "Feeding on decaying flesh and fly larvae." }
-        ];
-        if (week <= 24) return [
-            { name: "Skin/Hide Beetles (Dermestidae)", desc: "Breaking down dried skin, cartilage, and ligaments." },
-            { name: "Soil Fungi & Nematodes", desc: "Absorbing leaked purge fluids in the soil." }
-        ];
-        return [
-            { name: "Vertebrate Scavengers (Rodents)", desc: "Gnawing on exposed bones for minerals." },
-            { name: "Plant Roots & Soil Microbes", desc: "Dissolving bone mineral and collagen matrix." }
-        ];
     };
 
     // --- Visualizer Components ---
@@ -196,21 +283,24 @@
       </g>
     );
 
-    const BodyVisualizer = ({ mode, week }) => {
-      const normalOp = interpolate(week, [{w:1,v:1}, {w:2,v:0.2}, {w:3,v:0}]);
-      const bloatOp = interpolate(week, [{w:1,v:0}, {w:2,v:1}, {w:4,v:0.8}, {w:8,v:0}]);
-      const decayOp = interpolate(week, [{w:1,v:0}, {w:3,v:0}, {w:5,v:1}, {w:12,v:0.5}, {w:24,v:0}]);
-      
-      const bloatScaleX = interpolate(week, [{w:1,v:1}, {w:2,v:1.5}, {w:4,v:1.3}, {w:8,v:0.8}, {w:24,v:0.4}]);
-      const bloatScaleY = interpolate(week, [{w:1,v:1}, {w:2,v:1.2}, {w:4,v:1.1}, {w:8,v:0.9}, {w:24,v:0.4}]);
-      const decayArmScale = interpolate(week, [{w:1,v:1}, {w:4,v:1.2}, {w:8,v:0.6}, {w:24,v:0.2}]);
-      const decayLegScale = interpolate(week, [{w:1,v:1}, {w:4,v:1.2}, {w:8,v:0.6}, {w:24,v:0.2}]);
-      const boneWeathering = interpolate(week, [{w:1,v:1}, {w:40,v:1}, {w:52,v:0.4}]);
+    const BodyVisualizer = ({ scenarioId, week }) => {
+      const mode = SCENARIOS[scenarioId].mode;
+      const v = SCENARIOS[scenarioId].visuals;
 
-      const fatScale = interpolate(week, [{w:1,v:1}, {w:52,v:1.35}]);
-      const muscleArmScale = interpolate(week, [{w:1,v:1.2}, {w:52,v:0.8}]);
-      const muscleLegScale = interpolate(week, [{w:1,v:1.2}, {w:52,v:0.85}]);
-      const slouchHeadY = interpolate(week, [{w:1,v:-55}, {w:52,v:-52}]);
+      const normalOp = interpolate(week, v.normalOp || [{w:1,v:1}]);
+      const bloatOp = interpolate(week, v.bloatOp || [{w:1,v:0}]);
+      const decayOp = interpolate(week, v.decayOp || [{w:1,v:0}]);
+      
+      const bloatScaleX = interpolate(week, v.bloatScaleX || [{w:1,v:1}]);
+      const bloatScaleY = interpolate(week, v.bloatScaleY || [{w:1,v:1}]);
+      const decayArmScale = interpolate(week, v.armScale || [{w:1,v:1}]);
+      const decayLegScale = interpolate(week, v.legScale || [{w:1,v:1}]);
+      const boneWeathering = interpolate(week, v.boneWeathering || [{w:1,v:1}]);
+
+      const fatScale = interpolate(week, v.fatScale || [{w:1,v:1}]);
+      const muscleArmScale = interpolate(week, v.muscleArmScale || [{w:1,v:1}]);
+      const muscleLegScale = interpolate(week, v.muscleLegScale || [{w:1,v:1}]);
+      const slouchHeadY = interpolate(week, v.headY || [{w:1,v:-55}]);
 
       return (
         <div className="w-full h-64 sm:h-80 bg-slate-950 rounded-xl overflow-hidden relative shadow-[inset_0_2px_20px_rgba(0,0,0,0.5)] border border-slate-700/50">
@@ -244,6 +334,14 @@
                 <stop offset="0%" stopColor="#1e293b" />
                 <stop offset="100%" stopColor="#0f172a" />
               </linearGradient>
+              <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#083344" />
+                <stop offset="100%" stopColor="#020617" />
+              </linearGradient>
+              <linearGradient id="sandGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#064e3b" />
+                <stop offset="100%" stopColor="#022c22" />
+              </linearGradient>
               <filter id="fleshTexture">
                 <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise" />
                 <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" in="noise" result="coloredNoise" />
@@ -253,22 +351,50 @@
             </defs>
 
             {mode === 'decomposition' ? (
-              <g>
-                <rect width="300" height="60" fill="#020617" />
-                <circle cx="260" cy="25" r="10" fill="#cbd5e1" opacity="0.8" filter="blur(2px)" />
-                <circle cx="260" cy="25" r="8" fill="#f8fafc" />
-                <rect y="56" width="300" height="6" fill="#064e3b" />
-                <path d="M 20,56 L 25,48 L 30,56 M 50,56 L 52,50 L 55,56 M 150,56 L 155,45 L 160,56 M 280,56 L 283,49 L 286,56" stroke="#047857" strokeWidth="2" fill="none" strokeLinecap="round" />
-                <rect y="62" width="300" height="178" fill="url(#dirtGrad)" />
-                <g opacity={interpolate(week, [{w:1,v:0}, {w:24,v:0.4}, {w:52,v:0.8}])} stroke="#451a03" strokeWidth="1.5" fill="none" strokeLinecap="round">
-                  <path d="M 50,62 Q 40,100 60,140 T 50,200" />
-                  <path d="M 250,62 Q 260,120 230,160 T 240,220" />
-                  <path d="M 150,62 Q 130,90 150,110" />
+              scenarioId === 'decomp_ocean' ? (
+                <g>
+                  <rect width="300" height="240" fill="url(#oceanGrad)" />
+                  <path d="M 0,170 Q 150,150 300,180 L 300,240 L 0,240 Z" fill="url(#sandGrad)" />
+                  <circle cx="50" cy="180" r="1.5" fill="#5eead4" opacity="0.3" />
+                  <circle cx="70" cy="120" r="2.5" fill="#5eead4" opacity="0.1" />
+                  <circle cx="120" cy="80" r="1" fill="#5eead4" opacity="0.4" />
+                  <circle cx="220" cy="190" r="2" fill="#5eead4" opacity="0.2" />
+                  <circle cx="260" cy="100" r="1.5" fill="#5eead4" opacity="0.3" />
+                  <polygon points="100,0 200,0 250,240 50,240" fill="#22d3ee" opacity="0.03" />
                 </g>
-                <rect x="30" y="80" width="240" height="130" fill="url(#shaftGrad)" rx="12" />
-                <path d="M 30,92 Q 150,75 270,92" fill="none" stroke="#2b1d12" strokeWidth="4" />
-                <ellipse cx="150" cy="145" rx={interpolate(week, [{w:1,v:0}, {w:4,v:110}, {w:24,v:120}, {w:52,v:90}])} ry={interpolate(week, [{w:1,v:0}, {w:4,v:60}, {w:24,v:65}, {w:52,v:45}])} fill="#290f02" opacity={interpolate(week, [{w:1,v:0}, {w:4,v:0.6}, {w:24,v:0.8}, {w:52,v:0.3}])} filter="blur(8px)" />
-              </g>
+              ) : (
+                <g>
+                  <rect width="300" height="60" fill="#020617" />
+                  {scenarioId === 'decomp_cold' ? (
+                    <>
+                      <circle cx="260" cy="25" r="15" fill="#e0f2fe" opacity="0.4" filter="blur(4px)" />
+                      <circle cx="100" cy="40" r="1" fill="#fff" opacity="0.8" />
+                      <circle cx="150" cy="20" r="1.5" fill="#fff" opacity="0.6" />
+                      <circle cx="200" cy="50" r="1" fill="#fff" opacity="0.9" />
+                    </>
+                  ) : (
+                    <>
+                      <circle cx="260" cy="25" r="10" fill="#cbd5e1" opacity="0.8" filter="blur(2px)" />
+                      <circle cx="260" cy="25" r="8" fill="#f8fafc" />
+                    </>
+                  )}
+                  <rect y="56" width="300" height="6" fill={scenarioId === 'decomp_cold' ? '#f1f5f9' : '#064e3b'} />
+                  {scenarioId !== 'decomp_cold' && (
+                    <path d="M 20,56 L 25,48 L 30,56 M 50,56 L 52,50 L 55,56 M 150,56 L 155,45 L 160,56 M 280,56 L 283,49 L 286,56" stroke="#047857" strokeWidth="2" fill="none" strokeLinecap="round" />
+                  )}
+                  <rect y="62" width="300" height="178" fill="url(#dirtGrad)" />
+                  <g opacity={interpolate(week, [{w:1,v:0}, {w:24,v:0.4}, {w:52,v:0.8}])} stroke="#451a03" strokeWidth="1.5" fill="none" strokeLinecap="round">
+                    <path d="M 50,62 Q 40,100 60,140 T 50,200" />
+                    <path d="M 250,62 Q 260,120 230,160 T 240,220" />
+                    <path d="M 150,62 Q 130,90 150,110" />
+                  </g>
+                  <rect x="30" y="80" width="240" height="130" fill="url(#shaftGrad)" rx="12" />
+                  <path d="M 30,92 Q 150,75 270,92" fill="none" stroke="#2b1d12" strokeWidth="4" />
+                  {scenarioId !== 'decomp_cold' && (
+                    <ellipse cx="150" cy="145" rx={interpolate(week, [{w:1,v:0}, {w:4,v:110}, {w:24,v:120}, {w:52,v:90}])} ry={interpolate(week, [{w:1,v:0}, {w:4,v:60}, {w:24,v:65}, {w:52,v:45}])} fill="#290f02" opacity={interpolate(week, [{w:1,v:0}, {w:4,v:0.6}, {w:24,v:0.8}, {w:52,v:0.3}])} filter="blur(8px)" />
+                  )}
+                </g>
+              )
             ) : (
               <g>
                 <rect width="300" height="180" fill="url(#gymWall)" />
@@ -296,7 +422,7 @@
                 <>
                   <FleshLayer fill="#451a03" opacity={decayOp} scaleX={bloatScaleX * 0.9} scaleY={bloatScaleY * 0.9} armScale={decayArmScale * 0.8} legScale={decayLegScale * 0.8} isDecay={true} />
                   <FleshLayer fill="url(#bloatGrad)" opacity={bloatOp} scaleX={bloatScaleX} scaleY={bloatScaleY} armScale={decayArmScale} legScale={decayLegScale} />
-                  <FleshLayer fill="url(#healthyFlesh)" opacity={normalOp} />
+                  <FleshLayer fill={scenarioId === 'decomp_cold' ? "#e2e8f0" : "url(#healthyFlesh)"} opacity={normalOp} />
                 </>
               ) : (
                 <FleshLayer fill="url(#healthyFlesh)" opacity={1} scaleX={fatScale} armScale={muscleArmScale} legScale={muscleLegScale} headY={slouchHeadY} />
@@ -309,12 +435,16 @@
 
     // --- Main App Component ---
     function App() {
+      const [hasStarted, setHasStarted] = useState(false);
+      const [scenarioId, setScenarioId] = useState('decomp_standard');
       const [week, setWeek] = useState(1);
-      const [mode, setMode] = useState('decomposition'); 
       const [isPlaying, setIsPlaying] = useState(false);
       const [speed, setSpeed] = useState(1);
       const [report, setReport] = useState(null);
       const [isGenerating, setIsGenerating] = useState(false);
+
+      const activeScenario = SCENARIOS[scenarioId];
+      const mode = activeScenario.mode;
 
       const apiKey = ""; // Add your Gemini API Key here if needed
 
@@ -322,12 +452,12 @@
         setIsGenerating(true);
         setReport(null);
         
-        const currentSystems = SYSTEMS[mode];
+        const currentSystems = activeScenario.systems;
         const systemData = currentSystems.map(s => `${s.name}: ${Math.round(interpolate(week, s.keyframes))}%`).join(', ');
         
         const prompt = mode === 'decomposition'
-          ? `Act as an expert forensic anthropologist. Write a concise, realistic post-mortem examination summary for a body that has been decomposing for ${week} weeks. Assume standard environmental conditions. Current tissue/system integrities are: ${systemData}. Keep it under 150 words, use professional forensic terminology, and avoid markdown hashes for headers, just use bold text.`
-          : `Act as a clinical physiologist. Write a concise, realistic medical assessment for a patient who has been completely sedentary and detraining for ${week} weeks. Current physiological integrities are: ${systemData}. Keep it under 150 words, use professional medical terminology, and avoid markdown hashes for headers, just use bold text.`;
+          ? `Act as an expert forensic anthropologist. Write a concise, realistic post-mortem examination summary for a body that has been decomposing for ${week} weeks in a ${activeScenario.title} scenario (${activeScenario.desc}). Current tissue/system integrities are: ${systemData}. Keep it under 150 words, use professional forensic terminology, and avoid markdown hashes for headers, just use bold text.`
+          : `Act as a clinical physiologist. Write a concise, realistic medical assessment for a patient who has been completely sedentary and detraining for ${week} weeks in a ${activeScenario.title} scenario (${activeScenario.desc}). Current physiological integrities are: ${systemData}. Keep it under 150 words, use professional medical terminology, and avoid markdown hashes for headers, just use bold text.`;
 
         try {
           let attempt = 0;
@@ -359,7 +489,7 @@
 
       useEffect(() => {
         let interval;
-        if (isPlaying) {
+        if (isPlaying && hasStarted) {
           interval = setInterval(() => {
             setWeek(prev => {
               if (prev >= 52) {
@@ -371,59 +501,74 @@
           }, 400 / speed); 
         }
         return () => clearInterval(interval);
-      }, [isPlaying, speed]);
+      }, [isPlaying, speed, hasStarted]);
 
-      const currentSystems = SYSTEMS[mode];
-      const info = mode === 'detraining' ? getDetrainingText(week) : getDecompositionText(week);
+      if (!hasStarted) {
+        return (
+          <div className="min-h-screen font-sans flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden">
+            {/* Background Glows */}
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-      const getColorClass = (val) => {
-        if (val > 80) return 'bg-cyan-400';
-        if (val > 50) return 'bg-yellow-400';
-        if (val > 20) return 'bg-orange-500';
-        return 'bg-red-500';
-      };
+            <header className="max-w-5xl w-full flex flex-col items-center mb-12 z-10">
+              <h1 className="text-4xl sm:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-600 text-center mb-6 tracking-tight">
+                Simulation Scenario
+              </h1>
+              <p className="text-slate-400 text-center max-w-2xl text-lg">
+                Choose an environmental condition or starting health profile to visualize its dramatic impact on the 52-week timeline.
+              </p>
+            </header>
 
-      const getTextColorClass = (val) => {
-        if (val > 80) return 'text-cyan-400';
-        if (val > 50) return 'text-yellow-400';
-        if (val > 20) return 'text-orange-500';
-        return 'text-red-500';
-      };
+            <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 z-10">
+              {Object.values(SCENARIOS).map(scen => (
+                <button 
+                  key={scen.id}
+                  onClick={() => { setScenarioId(scen.id); setHasStarted(true); setWeek(1); setIsPlaying(false); setReport(null); }}
+                  className="flex flex-col text-left bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/50 hover:bg-slate-800/80 hover:-translate-y-1 transition-all duration-300 group shadow-xl"
+                >
+                  <div className={`p-3 rounded-xl bg-slate-950 border border-slate-800 mb-4 group-hover:scale-110 transition-transform duration-300 w-fit shadow-inner`}>
+                    <scen.icon className={`w-6 h-6 ${scen.colorClass}`} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-100 mb-2">{scen.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed mb-6 flex-grow">{scen.desc}</p>
+                  <div className={`text-[11px] font-bold uppercase tracking-wider ${scen.colorClass} flex items-center gap-1 mt-auto`}>
+                    {scen.mode === 'decomposition' ? 'Post-Mortem Decay' : 'Sedentary Detraining'}
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      }
 
+      const info = activeScenario.text(week);
       const radius = 24;
       const circumference = 2 * Math.PI * radius;
       const strokeDashoffset = circumference - (week / 52) * circumference;
 
       return (
         <div className="min-h-screen font-sans flex flex-col items-center p-4 sm:p-8">
-          <header className="max-w-5xl w-full flex flex-col items-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-600 text-center mb-6 tracking-tight">
-              Physiological Deterioration Timeline
-            </h1>
-            <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 shadow-xl">
-              <button
-                onClick={() => { setMode('decomposition'); setWeek(1); setIsPlaying(false); setReport(null); }}
-                className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-                  mode === 'decomposition' ? 'bg-slate-800 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Skull className="w-4 h-4" /> Post-Mortem Decay
-              </button>
-              <button
-                onClick={() => { setMode('detraining'); setWeek(1); setIsPlaying(false); setReport(null); }}
-                className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-                  mode === 'detraining' ? 'bg-slate-800 text-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Activity className="w-4 h-4" /> Sedentary Detraining
-              </button>
+          <header className="max-w-5xl w-full flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+            <button 
+              onClick={() => { setHasStarted(false); setIsPlaying(false); }}
+              className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mr-auto bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-semibold text-xs uppercase tracking-wider">Change Scenario</span>
+            </button>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-600 tracking-tight text-center">
+                {activeScenario.title}
+              </h1>
             </div>
+            <div className="w-[140px] hidden sm:block"></div> {/* Spacer for centering */}
           </header>
 
           <main className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
             <div className="md:col-span-6 flex flex-col bg-slate-900/50 p-6 rounded-2xl border border-slate-800/80 shadow-2xl relative">
               <div className="relative mb-6">
-                <BodyVisualizer mode={mode} week={week} />
+                <BodyVisualizer scenarioId={scenarioId} week={week} />
                 <div className="absolute top-4 left-4 flex justify-center items-center w-16 h-16 bg-slate-950/80 rounded-full border border-slate-800 backdrop-blur-sm shadow-lg">
                   <svg className="transform -rotate-90 w-full h-full p-1" viewBox="0 0 60 60">
                     <circle cx="30" cy="30" r={radius} className="stroke-slate-800" strokeWidth="4" fill="none" />
@@ -497,14 +642,14 @@
                 </div>
               </div>
 
-              {mode === 'decomposition' && (
+              {mode === 'decomposition' && activeScenario.necro && (
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl mb-2">
                   <div className="flex items-center gap-2 mb-3">
                     <Bug className="w-5 h-5 text-lime-400" />
                     <h3 className="font-semibold text-slate-200">Active Necrobiome Agents</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {getActiveNecrobiome(week).map((agent, i) => (
+                    {activeScenario.necro(week).map((agent, i) => (
                       <div key={i} className="bg-slate-950/50 border border-slate-800/80 rounded-lg p-3">
                         <span className="block text-sm font-medium text-lime-400 mb-1">{agent.name}</span>
                         <span className="block text-xs text-slate-400">{agent.desc}</span>
@@ -515,8 +660,23 @@
               )}
 
               <div className="grid grid-cols-1 gap-3">
-                {currentSystems.map((system) => {
+                {activeScenario.systems.map((system) => {
                   const value = interpolate(week, system.keyframes);
+                  
+                  // Color helpers
+                  const getColorClass = (val) => {
+                    if (val > 80) return 'bg-cyan-400';
+                    if (val > 50) return 'bg-yellow-400';
+                    if (val > 20) return 'bg-orange-500';
+                    return 'bg-red-500';
+                  };
+                  const getTextColorClass = (val) => {
+                    if (val > 80) return 'text-cyan-400';
+                    if (val > 50) return 'text-yellow-400';
+                    if (val > 20) return 'text-orange-500';
+                    return 'text-red-500';
+                  };
+
                   return (
                     <div key={system.id} className="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 shadow-sm hover:border-slate-700 transition-colors">
                       <div className="flex justify-between items-center mb-3">
@@ -532,11 +692,6 @@
                       </div>
                       <div className="w-full bg-slate-950/50 h-2.5 rounded-full overflow-hidden border border-slate-800/50 mb-2">
                         <div className={`h-full ${getColorClass(value)} transition-all duration-700 ease-out`} style={{ width: `${value}%` }} />
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[11px] text-slate-500 font-medium tracking-wide">
-                          {getSystemStatus(mode, system.id, week, value)}
-                        </span>
                       </div>
                     </div>
                   );
