@@ -21,7 +21,6 @@
   <div id="root"></div>
 
   <!-- The actual React Application -->
-  <!-- We use data-type="module" so we can use modern ES imports from esm.sh -->
   <script type="text/babel" data-type="module">
     import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18';
     import { createRoot } from 'https://esm.sh/react-dom@18/client';
@@ -30,7 +29,7 @@
       Play, Pause, RotateCcw, Layers, ActivitySquare, 
       Sparkles, Loader2, FileText, Bug,
       ThermometerSun, Snowflake, Trophy, User, ArrowLeft, ChevronRight, Waves,
-      Volume2, MessageCircle, Send, Mic, StopCircle, Film
+      Volume2, MessageCircle, Send, StopCircle, Film, Leaf
     } from 'https://esm.sh/lucide-react@0.292.0';
 
     // --- Audio Helper Functions for Gemini TTS ---
@@ -94,7 +93,7 @@
     // Define all scenario configurations
     const SCENARIOS = {
       decomp_standard: {
-        id: 'decomp_standard', mode: 'decomposition',
+        id: 'decomp_standard', mode: 'decomposition', maxWeeks: 52,
         title: 'Standard Post-Mortem',
         desc: 'Temperate climate (~65°F/18°C), average conditions. Normal baseline rate of decomposition and necrobiome succession.',
         icon: Skull, colorClass: 'text-cyan-400',
@@ -129,7 +128,7 @@
         }
       },
       decomp_hot: {
-        id: 'decomp_hot', mode: 'decomposition',
+        id: 'decomp_hot', mode: 'decomposition', maxWeeks: 52,
         title: 'Tropical / High Heat',
         desc: 'Hot & humid (85°F+). Extreme acceleration of autolysis and massive insect activity.',
         icon: ThermometerSun, colorClass: 'text-orange-500',
@@ -161,7 +160,7 @@
         }
       },
       decomp_cold: {
-        id: 'decomp_cold', mode: 'decomposition',
+        id: 'decomp_cold', mode: 'decomposition', maxWeeks: 52,
         title: 'Sub-Freezing Winter',
         desc: 'Continuous freezing temperatures. The necrobiome is severely suppressed.',
         icon: Snowflake, colorClass: 'text-blue-400',
@@ -183,7 +182,7 @@
         }
       },
       decomp_ocean: {
-        id: 'decomp_ocean', mode: 'decomposition',
+        id: 'decomp_ocean', mode: 'decomposition', maxWeeks: 52,
         title: 'Deep Ocean Floor',
         desc: 'Cold (~39°F/4°C), high pressure. Intense aquatic scavenging drives decay rather than bacterial putrefaction.',
         icon: Waves, colorClass: 'text-teal-400',
@@ -215,8 +214,46 @@
           legScale: [{w:1,v:1}, {w:2,v:0.8}, {w:4,v:0.5}, {w:8,v:0.2}], boneWeathering: [{w:1,v:1}, {w:24,v:1}, {w:52,v:0.6}]
         }
       },
+      decomp_natural_burial: {
+        id: 'decomp_natural_burial', mode: 'decomposition', maxWeeks: 1040, // 20 years
+        title: 'Green Burial (No Casket)',
+        desc: 'Direct soil burial in a shroud. Complete timeline extending over 20 years (1040 weeks) until total dissolution.',
+        icon: Leaf, colorClass: 'text-lime-500',
+        systems: [
+          { id: 'skin', name: 'Soft Tissue', icon: Droplets, keyframes: [{w:1, v:100}, {w:4, v:60}, {w:12, v:20}, {w:24, v:0}, {w:1040, v:0}] },
+          { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:4, v:40}, {w:12, v:0}, {w:1040, v:0}] },
+          { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:8, v:50}, {w:24, v:0}, {w:1040, v:0}] },
+          { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:24, v:80}, {w:52, v:30}, {w:104, v:0}, {w:1040, v:0}] },
+          { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:52, v:98}, {w:260, v:80}, {w:520, v:50}, {w:780, v:20}, {w:1040, v:0}] },
+        ],
+        text: (w) => {
+          if (w <= 4) return { phase: "Initial Decay", text: "Soil weight prevents massive bloating. Anaerobic bacteria break down internal organs." };
+          if (w <= 24) return { phase: "Active Decay", text: "Purge fluids saturate the surrounding soil. Soft tissues rapidly liquefy and are consumed by soil microbiota." };
+          if (w <= 52) return { phase: "Advanced Decay", text: "All soft tissue is gone. The skeleton is held together only by degrading cartilage and tough ligaments." };
+          if (w <= 260) return { phase: "Skeletonization (Yrs 1-5)", text: "Bones fully disarticulate. Soil fungi and plant roots begin to etch into the bone surface." };
+          if (w <= 520) return { phase: "Bone Degradation (Yrs 5-10)", text: "Root systems deeply invade the bone matrix, extracting calcium. Bones become highly brittle and cracked." };
+          return { phase: "Total Dissolution (Yrs 10-20)", text: "The acidic soil and continuous microbial boring completely dissolve the hydroxyapatite. The skeleton vanishes, integrating fully into the earth." };
+        },
+        necro: (w) => {
+          if (w <= 4) return [{ name: "Anaerobic Bacteria", desc: "Internal putrefaction.", emoji: "🦠" }, { name: "Nematodes", desc: "Migrating to the body.", emoji: "🪱" }];
+          if (w <= 24) return [{ name: "Soil Microbes", desc: "Absorbing rich purge fluids.", emoji: "🧫" }, { name: "Fungal Mats", desc: "Breaking down complex proteins.", emoji: "🍄" }];
+          if (w <= 52) return [{ name: "Scavenging Insects", desc: "Subterranean beetles feeding on cartilage.", emoji: "🪲" }, { name: "Protozoa", desc: "Consuming liquefied remains.", emoji: "🦠" }];
+          if (w <= 260) return [{ name: "Plant Roots", desc: "Seeking calcium and nutrients.", emoji: "🌱" }, { name: "Mycorrhizal Fungi", desc: "Assisting root nutrient uptake.", emoji: "🍄" }];
+          if (w <= 520) return [{ name: "Micro-boring Fungi", desc: "Etching into the bone cortex.", emoji: "🧫" }, { name: "Soil Acidity", desc: "Chemical dissolution of bone mineral.", emoji: "⚗️" }];
+          return [{ name: "Root Systems", desc: "Shattering remaining bone.", emoji: "🌳" }, { name: "Earthworms", desc: "Turning organic dust into soil.", emoji: "🪱" }];
+        },
+        visuals: {
+          normalOp: [{w:1,v:1}, {w:4,v:0.2}, {w:8,v:0}], bloatOp: [{w:1,v:0}, {w:4,v:0.8}, {w:12,v:0.5}, {w:24,v:0}],
+          decayOp: [{w:1,v:0}, {w:8,v:0}, {w:16,v:1}, {w:52,v:0.5}, {w:104,v:0}],
+          bloatScaleX: [{w:1,v:1}, {w:4,v:1.2}, {w:12,v:1.1}, {w:24,v:0.5}],
+          bloatScaleY: [{w:1,v:1}, {w:4,v:1.1}, {w:12,v:1.05}, {w:24,v:0.5}],
+          armScale: [{w:1,v:1}, {w:8,v:0.8}, {w:24,v:0.4}, {w:52,v:0.2}],
+          legScale: [{w:1,v:1}, {w:8,v:0.8}, {w:24,v:0.4}, {w:52,v:0.2}], 
+          boneWeathering: [{w:1,v:1}, {w:52,v:1}, {w:260,v:0.8}, {w:520,v:0.5}, {w:1040,v:0}]
+        }
+      },
       detrain_standard: {
-        id: 'detrain_standard', mode: 'detraining',
+        id: 'detrain_standard', mode: 'detraining', maxWeeks: 52,
         title: 'Standard Detraining',
         desc: 'Average adult transitioning to a completely sedentary lifestyle.',
         icon: User, colorClass: 'text-yellow-400',
@@ -240,7 +277,7 @@
         }
       },
       detrain_elite: {
-        id: 'detrain_elite', mode: 'detraining',
+        id: 'detrain_elite', mode: 'detraining', maxWeeks: 52,
         title: 'Elite Athlete Detraining',
         desc: 'A high-performance athlete experiences a sudden, extreme drop in activity.',
         icon: Trophy, colorClass: 'text-emerald-400',
@@ -328,6 +365,7 @@
 
     const BodyVisualizer = ({ scenarioId, week }) => {
       const mode = SCENARIOS[scenarioId].mode;
+      const maxW = SCENARIOS[scenarioId].maxWeeks || 52;
       const v = SCENARIOS[scenarioId].visuals;
 
       const normalOp = interpolate(week, v.normalOp || [{w:1,v:1}]);
@@ -426,7 +464,7 @@
                     <path d="M 20,56 L 25,48 L 30,56 M 50,56 L 52,50 L 55,56 M 150,56 L 155,45 L 160,56 M 280,56 L 283,49 L 286,56" stroke="#047857" strokeWidth="2" fill="none" strokeLinecap="round" />
                   )}
                   <rect y="62" width="300" height="178" fill="url(#dirtGrad)" />
-                  <g opacity={interpolate(week, [{w:1,v:0}, {w:24,v:0.4}, {w:52,v:0.8}])} stroke="#451a03" strokeWidth="1.5" fill="none" strokeLinecap="round">
+                  <g opacity={interpolate(week, [{w:1,v:0}, {w:24,v:0.4}, {w:maxW,v:0.85}])} stroke="#451a03" strokeWidth="1.5" fill="none" strokeLinecap="round">
                     <path d="M 50,62 Q 40,100 60,140 T 50,200" />
                     <path d="M 250,62 Q 260,120 230,160 T 240,220" />
                     <path d="M 150,62 Q 130,90 150,110" />
@@ -434,7 +472,7 @@
                   <rect x="30" y="80" width="240" height="130" fill="url(#shaftGrad)" rx="12" />
                   <path d="M 30,92 Q 150,75 270,92" fill="none" stroke="#2b1d12" strokeWidth="4" />
                   {scenarioId !== 'decomp_cold' && (
-                    <ellipse cx="150" cy="145" rx={interpolate(week, [{w:1,v:0}, {w:4,v:110}, {w:24,v:120}, {w:52,v:90}])} ry={interpolate(week, [{w:1,v:0}, {w:4,v:60}, {w:24,v:65}, {w:52,v:45}])} fill="#290f02" opacity={interpolate(week, [{w:1,v:0}, {w:4,v:0.6}, {w:24,v:0.8}, {w:52,v:0.3}])} filter="blur(8px)" />
+                    <ellipse cx="150" cy="145" rx={interpolate(week, [{w:1,v:0}, {w:4,v:110}, {w:24,v:120}, {w:maxW,v:90}])} ry={interpolate(week, [{w:1,v:0}, {w:4,v:60}, {w:24,v:65}, {w:maxW,v:45}])} fill="#290f02" opacity={interpolate(week, [{w:1,v:0}, {w:4,v:0.6}, {w:24,v:0.8}, {w:maxW,v:0.1}])} filter="blur(8px)" />
                   )}
                 </g>
               )
@@ -501,6 +539,7 @@
 
       const activeScenario = SCENARIOS[scenarioId];
       const mode = activeScenario.mode;
+      const maxW = activeScenario.maxWeeks || 52;
 
       const apiKey = ""; // Add your Gemini API Key here if needed
 
@@ -678,18 +717,18 @@
         if (isPlaying && hasStarted) {
           interval = setInterval(() => {
             setWeek(prev => {
-              if (prev >= 52) { 
+              if (prev >= maxW) { 
                 setIsPlaying(false);
                 setIsAutoNarrating(false);
                 autoNarrateRef.current = false;
-                return 52; 
+                return maxW; 
               }
               return prev + 1;
             });
           }, 400 / speed); 
         }
         return () => clearInterval(interval);
-      }, [isPlaying, speed, hasStarted]);
+      }, [isPlaying, speed, hasStarted, maxW]);
 
       // Guided Tour Effect: Detect Phase Changes and trigger generation
       useEffect(() => {
@@ -716,7 +755,7 @@
                 Simulation Scenario
               </h1>
               <p className="text-slate-400 text-center max-w-2xl text-lg">
-                Choose an environmental condition or starting health profile to visualize its dramatic impact on the 52-week timeline.
+                Choose an environmental condition or starting health profile to visualize its dramatic impact on the timeline.
               </p>
             </header>
 
@@ -750,7 +789,7 @@
       const info = activeScenario.text(week);
       const radius = 24;
       const circumference = 2 * Math.PI * radius;
-      const strokeDashoffset = circumference - (week / 52) * circumference;
+      const strokeDashoffset = circumference - (week / maxW) * circumference;
 
       return (
         <div className="min-h-screen font-sans flex flex-col items-center p-4 sm:p-8">
@@ -781,7 +820,7 @@
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pt-0.5">
                     <span className="text-[10px] font-semibold text-slate-400 uppercase leading-none mb-0.5">Wk</span>
-                    <span className="text-xl font-black text-slate-100 leading-none">{week}</span>
+                    <span className={`font-black text-slate-100 leading-none ${maxW > 999 ? 'text-sm' : 'text-xl'}`}>{week}</span>
                   </div>
                 </div>
               </div>
@@ -792,7 +831,7 @@
 
               <div className="w-full space-y-6 z-10 px-2">
                 <input
-                  type="range" min="1" max="52" value={week}
+                  type="range" min="1" max={maxW} value={week}
                   onChange={(e) => handleWeekChange(parseInt(e.target.value))}
                   className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500/50 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(34,211,238,0.5)]"
                 />
@@ -808,7 +847,7 @@
                 
                 <div className="flex justify-center mt-3">
                   <div className="flex bg-slate-900/80 p-1 rounded-lg border border-slate-700/80 shadow-inner">
-                    {[0.1, 0.25, 0.5, 1, 2, 4].map((s) => (
+                    {[0.25, 0.5, 1, 2, 4, 10].map((s) => (
                       <button key={s} onClick={() => setSpeed(s)} className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold rounded-md transition-all ${speed === s ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent'}`}>
                         {s}x
                       </button>
@@ -966,7 +1005,7 @@
           </main>
           
           <footer className="mt-12 text-center text-xs text-slate-600 max-w-2xl pb-8">
-            <p>Values represent generalized approximations of biological integrity and function over a 52-week timeline. Actual deterioration varies wildly based on environmental conditions, temperature, starting health, and genetics.</p>
+            <p>Values represent generalized approximations of biological integrity and function over a {maxW === 52 ? '52-week' : `${maxW}-week (20-year)`} timeline. Actual deterioration varies wildly based on environmental conditions, temperature, starting health, and genetics.</p>
           </footer>
         </div>
       );
