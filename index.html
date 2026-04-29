@@ -29,7 +29,7 @@
       Play, Pause, RotateCcw, Layers, ActivitySquare, 
       Sparkles, Loader2, FileText, Bug,
       ThermometerSun, Snowflake, Trophy, User, ArrowLeft, ChevronRight, Waves,
-      Volume2, MessageCircle, Send, StopCircle, Film, Leaf
+      Volume2, MessageCircle, Send, StopCircle, Film, Leaf, MapPin
     } from 'https://esm.sh/lucide-react@0.292.0';
 
     // --- Audio Helper Functions for Gemini TTS ---
@@ -252,6 +252,40 @@
           boneWeathering: [{w:1,v:1}, {w:52,v:1}, {w:260,v:0.8}, {w:520,v:0.5}, {w:1040,v:0}]
         }
       },
+      decomp_izmir: {
+        id: 'decomp_izmir', mode: 'decomposition', maxWeeks: 156, // 3 years
+        title: 'İzmir Subterranean',
+        desc: 'Mediterranean climate. Buried in İzmir Terra Rossa (red clay-loam) soil. Hot dry summer decay, wet winter microbial blooms, and maquis root intrusion.',
+        icon: MapPin, colorClass: 'text-red-400',
+        systems: [
+          { id: 'skin', name: 'Soft Tissue', icon: Droplets, keyframes: [{w:1, v:100}, {w:4, v:40}, {w:16, v:10}, {w:24, v:0}, {w:156, v:0}] },
+          { id: 'organs', name: 'Internal Organs', icon: ActivitySquare, keyframes: [{w:1, v:100}, {w:4, v:20}, {w:8, v:0}, {w:156, v:0}] },
+          { id: 'muscle', name: 'Musculature', icon: Dumbbell, keyframes: [{w:1, v:100}, {w:8, v:40}, {w:24, v:0}, {w:156, v:0}] },
+          { id: 'cartilage', name: 'Connective Tissue', icon: Layers, keyframes: [{w:1, v:100}, {w:24, v:60}, {w:52, v:25}, {w:104, v:0}, {w:156, v:0}] },
+          { id: 'bone', name: 'Skeletal Integrity', icon: Skull, keyframes: [{w:1, v:100}, {w:52, v:95}, {w:104, v:85}, {w:156, v:70}] },
+        ],
+        text: (w) => {
+          if (w <= 8) return { phase: "Hot Summer Autolysis", text: "İzmir's high heat bakes the upper soil. Rapid internal bacterial putrefaction occurs, but external soft tissue partially desiccates (mummifies) in the dry Terra Rossa clay." };
+          if (w <= 24) return { phase: "Wet Winter Bloom", text: "Mild, rainy Aegean winters rehydrate the soil. Explosive fungal and microbial blooms liquefy the remaining desiccated soft tissues." };
+          if (w <= 52) return { phase: "Early Skeletonization", text: "All soft tissue is depleted. Aegean subterranean insects (beetles, mites) clear out lingering cartilage in the warming spring." };
+          return { phase: "Maquis Root Intrusion (Yrs 2-3)", text: "Drought-resistant roots from local olive trees and maquis shrubs aggressively seek moisture, wrapping around and penetrating the skeleton, accelerating bone mineral breakdown." };
+        },
+        necro: (w) => {
+          if (w <= 8) return [{ name: "Thermophilic Bacteria", desc: "Thriving in the hot Mediterranean soil.", emoji: "🦠" }, { name: "Aegean Blowflies", desc: "Limited access but active near surface.", emoji: "🪰" }];
+          if (w <= 24) return [{ name: "Winter Fungal Mats", desc: "Blooming during the rainy season.", emoji: "🍄" }, { name: "Soil Nematodes", desc: "Flourishing in rehydrated clay.", emoji: "🪱" }];
+          if (w <= 52) return [{ name: "Subterranean Beetles", desc: "Clearing out tough connective tissue.", emoji: "🪲" }, { name: "Mediterranean Mites", desc: "Breaking down residual proteins.", emoji: "🕷️" }];
+          return [{ name: "Olive & Maquis Roots", desc: "Penetrating bones for moisture.", emoji: "🌿" }, { name: "Terra Rossa Acidity", desc: "Slow chemical dissolution of bone.", emoji: "⚗️" }];
+        },
+        visuals: {
+          normalOp: [{w:1,v:1}, {w:4,v:0.2}, {w:16,v:0}], bloatOp: [{w:1,v:0}, {w:4,v:0.8}, {w:12,v:0.5}, {w:24,v:0}],
+          decayOp: [{w:1,v:0}, {w:8,v:0}, {w:16,v:1}, {w:52,v:0.5}, {w:104,v:0}],
+          bloatScaleX: [{w:1,v:1}, {w:4,v:1.2}, {w:12,v:1.1}, {w:24,v:0.5}],
+          bloatScaleY: [{w:1,v:1}, {w:4,v:1.1}, {w:12,v:1.05}, {w:24,v:0.5}],
+          armScale: [{w:1,v:1}, {w:8,v:0.8}, {w:24,v:0.4}, {w:52,v:0.2}],
+          legScale: [{w:1,v:1}, {w:8,v:0.8}, {w:24,v:0.4}, {w:52,v:0.2}], 
+          boneWeathering: [{w:1,v:1}, {w:52,v:1}, {w:104,v:0.8}, {w:156,v:0.6}]
+        }
+      },
       detrain_standard: {
         id: 'detrain_standard', mode: 'detraining', maxWeeks: 52,
         title: 'Standard Detraining',
@@ -423,6 +457,11 @@
                 <stop offset="0%" stopColor="#064e3b" />
                 <stop offset="100%" stopColor="#022c22" />
               </linearGradient>
+              <linearGradient id="izmirGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#7f1d1d" />
+                <stop offset="50%" stopColor="#450a0a" />
+                <stop offset="100%" stopColor="#2e0505" />
+              </linearGradient>
               <filter id="fleshTexture">
                 <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise" />
                 <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" in="noise" result="coloredNoise" />
@@ -442,6 +481,25 @@
                   <circle cx="220" cy="190" r="2" fill="#5eead4" opacity="0.2" />
                   <circle cx="260" cy="100" r="1.5" fill="#5eead4" opacity="0.3" />
                   <polygon points="100,0 200,0 250,240 50,240" fill="#22d3ee" opacity="0.03" />
+                </g>
+              ) : scenarioId === 'decomp_izmir' ? (
+                <g>
+                  <rect width="300" height="60" fill="#020617" />
+                  <circle cx="260" cy="25" r="10" fill="#cbd5e1" opacity="0.8" filter="blur(2px)" />
+                  <circle cx="260" cy="25" r="8" fill="#f8fafc" />
+                  <rect y="56" width="300" height="6" fill="#4d7c0f" />
+                  <path d="M 20,56 L 25,48 L 30,56 M 50,56 L 52,50 L 55,56 M 150,56 L 155,45 L 160,56 M 280,56 L 283,49 L 286,56" stroke="#3f6212" strokeWidth="2" fill="none" strokeLinecap="round" />
+                  <rect y="62" width="300" height="178" fill="url(#izmirGrad)" />
+                  
+                  <g opacity={interpolate(week, [{w:1,v:0}, {w:52,v:0.5}, {w:156,v:0.9}])} stroke="#d97706" strokeWidth="1.5" fill="none" strokeLinecap="round">
+                    <path d="M 40,62 Q 30,100 80,150 T 60,220" />
+                    <path d="M 260,62 Q 280,120 220,170 T 250,230" />
+                    <path d="M 150,62 Q 120,100 160,130" />
+                    <path d="M 100,62 Q 130,80 100,120" />
+                  </g>
+                  <rect x="30" y="80" width="240" height="130" fill="url(#shaftGrad)" rx="12" />
+                  <path d="M 30,92 Q 150,75 270,92" fill="none" stroke="#450a0a" strokeWidth="4" />
+                  <ellipse cx="150" cy="145" rx={interpolate(week, [{w:1,v:0}, {w:12,v:110}, {w:52,v:120}, {w:maxW,v:90}])} ry={interpolate(week, [{w:1,v:0}, {w:12,v:60}, {w:52,v:65}, {w:maxW,v:45}])} fill="#290f02" opacity={interpolate(week, [{w:1,v:0}, {w:12,v:0.6}, {w:52,v:0.8}, {w:maxW,v:0.1}])} filter="blur(8px)" />
                 </g>
               ) : (
                 <g>
